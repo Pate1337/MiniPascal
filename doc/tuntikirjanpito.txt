@@ -1,0 +1,9 @@
+23.03.2020 | 6h | Projekti aloitettu. Pystytetty dotnet projekti. Luotu joitakin perusluokkia: Error,
+FileHandler, IOHandlers. Main metodi.
+24.03.2020 | 5h | Scannerin koodaus aloitettu. Luotu vastaava automaatti. Testattu jokainen
+token.
+27.03.2020 | 3h | Automaatin koodia refaktoroitu.
+28.03.2020 | 5h | Parserin koodausta aloitettu. 
+29.03.2020 | 6h | Parseria koodattu.
+30.03.2020 | 4h | Parseri saatu suurimmaksi osin valmiiksi. Vaikeuksia aiheuttavat ennalta
+määritellyt muuttujat sekä samankaltaisudet kieliopin <statement>:issa.

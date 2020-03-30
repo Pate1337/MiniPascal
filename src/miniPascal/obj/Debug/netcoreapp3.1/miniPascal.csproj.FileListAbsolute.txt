@@ -1,0 +1,11 @@
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/bin/Debug/netcoreapp3.1/miniPascal
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/bin/Debug/netcoreapp3.1/miniPascal.deps.json
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/bin/Debug/netcoreapp3.1/miniPascal.runtimeconfig.json
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/bin/Debug/netcoreapp3.1/miniPascal.runtimeconfig.dev.json
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/bin/Debug/netcoreapp3.1/miniPascal.dll
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/bin/Debug/netcoreapp3.1/miniPascal.pdb
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/obj/Debug/netcoreapp3.1/miniPascal.csprojAssemblyReference.cache
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/obj/Debug/netcoreapp3.1/miniPascal.AssemblyInfoInputs.cache
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/obj/Debug/netcoreapp3.1/miniPascal.AssemblyInfo.cs
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/obj/Debug/netcoreapp3.1/miniPascal.dll
+/Users/paavohemmo/projects/mini_pascal/src/miniPascal/obj/Debug/netcoreapp3.1/miniPascal.pdb

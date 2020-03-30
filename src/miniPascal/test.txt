@@ -1,0 +1,31 @@
+program testprogram;
+
+procedure p();
+begin
+// <statement>
+// <simple-statement>
+// <assignment-statement>
+// <variable> ":=" <expr>
+var a, b, c : integer;
+var x : array[5] of integer;
+x [(3*5).size] := 4;
+
+end;
+
+{*function f (var a : integer) : string;
+begin end;
+
+procedure p2(var a : integer, b : string, var c : integer);
+begin end;*}
+
+begin end .
+
+{*
+TEST CASES:
+
+"program" <id> ";" <procedure> <main-block> "."
+--> "program" <id> ";" "procedure" <id> "(" parameters ")" ";" <block> ";" <main-block> "."
+
+"program" <id> ";" <function> <main-block> "."
+--> "program" <id> ";" "function" <id> "(" parameters ")" ":" <type> ";" <block> ";" <main-block> "."
+*}
