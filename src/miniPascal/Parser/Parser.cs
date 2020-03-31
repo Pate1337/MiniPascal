@@ -19,7 +19,6 @@ namespace miniPascal
       this.io = io;
       this.scanner = new Scanner(reader);
       this.reader = reader;
-      this.io.WriteLine("Parser");
     }
     public ProgramNode Parse()
     {
@@ -87,27 +86,18 @@ namespace miniPascal
       // <read statement> | <write statement> | <assert statement>
       switch (this.token.Type)
       {
-        // TODO: ReadStatement and WriteStatement might also start with PredefinedIdentifier
         case (TokenType.Identifier): return StatementStartingWithIdentifier();
-        // case (TokenType.PredefinedIdentifier): return StatementStartingWithIdentifier();
+        case (TokenType.PredefinedIdentifier): return StatementStartingWithPredefinedIdentifier();
         case (TokenType.Keyword):
           if (NextIs(TokenType.Keyword, "return")) return ReturnStatement();
           else if (NextIs(TokenType.Keyword, "assert")) return AssertStatement();
           else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected Keywords: \"return\" or \"assert\".", this.token.LineNumber, this.token.Column, this.reader);
-        case (TokenType.PredefinedIdentifier):
-          if (NextIs(TokenType.PredefinedIdentifier, "read")) return ReadStatement();
-          else if (NextIs(TokenType.PredefinedIdentifier, "writeln")) return WriteStatement();
-          else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected PredefinedIdentifiers: \"read\" or \"writeln\".", this.token.LineNumber, this.token.Column, this.reader);
         default:
           throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".", this.token.LineNumber, this.token.Column, this.reader);
       }
     }
     private Statement StatementStartingWithPredefinedIdentifier()
     {
-      // TODO: Need some token buffer and going through each possibility
-      // without errors and without building AST.
-      // Need to go through <call>, <read statement> and <write statement>
-      // and see which matches. If none, throw error..
       // <call> ::= <id> "(" <arguments> ")"
       // <assignment statement> ::= <variable> ":=" <expr>
       // ALSO
@@ -120,22 +110,13 @@ namespace miniPascal
         // <call> ::= <id> "(" <arguments> ")"
         // <read statement> ::= "read" "(" <variable> { "," <variable> } ")"
         // <write statement> ::= "writeln" "(" <arguments> ")"
-        Match(TokenType.LeftParenthesis);
-        // if next Identifier or PredefinedIdentifier -> can be all
-        // else can not be read (needs Identifier or Predefined next)
-        if (NextIs({ TokenType.Identifier, TokenType.PredefinedIdentifier }))
-        {
-          // Can be all
-          Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
-        }
-        else
-        {
-          // Can only be write or call
-        }
+        if (id == "writeln") return WriteStatement();
+        else if (id == "read") return ReadStatement();
+        else return CallWithHandledIdentifier(id);
       }
       else
       {
-        // <assignment statement>
+        // <assignment statement> ::= <variable> ":=" <expr>
         AssignmentStatement a = new AssignmentStatement();
         a.Variable = VariableWithHandledIdentifier(id);
         Match(TokenType.Assignment);
@@ -145,10 +126,6 @@ namespace miniPascal
     }
     private Statement StatementStartingWithIdentifier()
     {
-      // First(<call>) = { <id> }
-      // First(<assignment>) = { <id> }
-      // Follow(<call>) = { ";", "end", "else" }
-      // Follow(<assignment>) = { ";", "end", "else" }
       // <call> ::= <id> "(" <arguments> ")"
       // <assignment statement> ::= <variable> ":=" <expr>
       string id = this.token.Value;
@@ -161,6 +138,34 @@ namespace miniPascal
       Match(TokenType.Assignment);
       a.Expression = Expression();
       return a;
+    }
+    private ReadStatement ReadStatement()
+    {
+      // <read statement> ::= "read" "(" <variable> { "," <variable> } ")" 
+      // Match(TokenType.PredefinedIdentifier, "read");
+      Match(TokenType.LeftParenthesis);
+      ReadStatement r = new ReadStatement();
+      r.Variables.Add(Variable());
+      while (true)
+      {
+        if (NextIs(TokenType.Comma))
+        {
+          r.Variables.Add(Variable());
+        }
+        else break;
+      }
+      Match(TokenType.RightParenthesis);
+      return r;
+    }
+    private WriteStatement WriteStatement()
+    {
+      // <write statement> ::= "writeln" "(" <arguments> ")"
+      // Match(TokenType.PredefinedIdentifier, "writeln");
+      Match(TokenType.LeftParenthesis);
+      WriteStatement w = new WriteStatement();
+      w.Arguments = Arguments();
+      Match(TokenType.RightParenthesis);
+      return w;
     }
     private Statement StructuredStatement()
     {
@@ -217,34 +222,6 @@ namespace miniPascal
       a.BooleanExpression = Expression();
       Match(TokenType.RightParenthesis);
       return a;
-    }
-    private ReadStatement ReadStatement()
-    {
-      // <read statement> ::= "read" "(" <variable> { "," <variable> } ")" 
-      Match(TokenType.PredefinedIdentifier, "read");
-      Match(TokenType.LeftParenthesis);
-      ReadStatement r = new ReadStatement();
-      r.Variables.Add(Variable());
-      while (true)
-      {
-        if (NextIs(TokenType.Comma))
-        {
-          r.Variables.Add(Variable());
-        }
-        else break;
-      }
-      Match(TokenType.RightParenthesis);
-      return r;
-    }
-    private WriteStatement WriteStatement()
-    {
-      // <write statement> ::= "writeln" "(" <arguments> ")"
-      Match(TokenType.PredefinedIdentifier, "writeln");
-      Match(TokenType.LeftParenthesis);
-      WriteStatement w = new WriteStatement();
-      w.Arguments = Arguments();
-      Match(TokenType.RightParenthesis);
-      return w;
     }
     private Arguments Arguments()
     {
@@ -345,6 +322,10 @@ namespace miniPascal
     private Factor Factor()
     {
       // <factor> ::= <call> | <variable> | <literal> | "(" <expr> ")" | "not" <factor> | < factor> "." "size"
+      // <factor> ::= (<call> | <variable> | <literal> | "(" <expr> ")" | "not" <factor>) ("." "size")*
+      // <factor> ::= <call><size> | <variable><size> | <literal><size> | "(" <expr> ")" <size> | "not" <factor> <size>
+      // <size> ::= "." "size" <size> | <empty>
+      // Elimination of left-recursion
       if (NextIs(TokenType.Identifier) || NextIs(TokenType.PredefinedIdentifier)) return FactorsStartingWithIdentifier();
       else if (
         NextIs(TokenType.IntegerLiteral) ||
@@ -377,12 +358,27 @@ namespace miniPascal
     private Factor FactorsStartingWithLiteral()
     {
       // <literal> | <factor> "." "size"
-      this.io.WriteLine("Only integer literals possible at the moment");
       if (NextIs(TokenType.IntegerLiteral))
       {
         IntegerLiteral lit = new IntegerLiteral();
         lit.Value = System.Int32.Parse(this.token.Value);
         Match(TokenType.IntegerLiteral);
+        HandlePossibleSize(lit);
+        return lit;
+      }
+      else if (NextIs(TokenType.StringLiteral))
+      {
+        StringLiteral lit = new StringLiteral();
+        lit.Value = this.token.Value;
+        Match(TokenType.StringLiteral);
+        HandlePossibleSize(lit);
+        return lit;
+      }
+      else if (NextIs(TokenType.RealLiteral))
+      {
+        RealLiteral lit = new RealLiteral();
+        lit.Value = this.token.Value;
+        Match(TokenType.RealLiteral);
         HandlePossibleSize(lit);
         return lit;
       }
@@ -487,6 +483,7 @@ namespace miniPascal
     }
     private List<Parameter> Parameters()
     {
+      // <parameters> ::= [ "var" ] <id> ":" <type> { "," [ "var" ] <id> ":" <type> } | <empty> 
       List<Parameter> parameters = new List<Parameter>();
       bool parenthesisAllowed = true;
       // While will end in RightParenthesis or throws a Syntax error
@@ -577,7 +574,7 @@ namespace miniPascal
     {
       return (expected == this.token.Type);
     }
-    private void NextIs(TokenType[] expectedTypes)
+    private bool NextIs(TokenType[] expectedTypes)
     {
       foreach (TokenType type in expectedTypes)
       {

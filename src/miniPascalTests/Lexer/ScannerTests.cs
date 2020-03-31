@@ -740,13 +740,13 @@ namespace miniPascalTests
       Scanner scanner = InitScanner(lines);
 
       Token token = scanner.NextToken();
-      Matches("or", TokenType.Keyword, 1, 0, token);
+      Matches("or", TokenType.AddingOperator, 1, 0, token);
 
       token = scanner.NextToken();
-      Matches("and", TokenType.Keyword, 2, 0, token);
+      Matches("and", TokenType.MultiplyingOperator, 2, 0, token);
 
       token = scanner.NextToken();
-      Matches("not", TokenType.Keyword, 3, 0, token);
+      Matches("not", TokenType.Negation, 3, 0, token);
 
       token = scanner.NextToken();
       Matches("if", TokenType.Keyword, 4, 0, token);
