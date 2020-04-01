@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class IntegerLiteral : Node, Factor
@@ -10,6 +12,10 @@ namespace Nodes
     {
       this.Style = "IntegerLiteral";
       this.Size = false;
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitIntegerLiteral(this);
     }
   }
 }

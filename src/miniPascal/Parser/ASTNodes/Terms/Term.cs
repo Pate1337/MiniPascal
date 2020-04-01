@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semantic;
 
 namespace Nodes
 {
@@ -11,6 +12,10 @@ namespace Nodes
     {
       this.Style = "Term";
       this.Multiplicatives = new List<TermMultiplicative>();
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitTerm(this);
     }
   }
 }

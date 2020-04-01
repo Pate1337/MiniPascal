@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class ClosedExpression : Node, Factor, Expression
@@ -9,6 +11,10 @@ namespace Nodes
     {
       this.Style = "ClosedExpression";
       this.Size = false;
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitClosedExpression(this);
     }
   }
 }

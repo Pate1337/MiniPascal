@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semantic;
 
 namespace Nodes
 {
@@ -6,8 +7,8 @@ namespace Nodes
   {
     public string Style { get; set; }
     public string Name { get; set; }
-    public List<Procedure> Procedures;
-    public List<Function> Functions;
+    public List<Procedure> Procedures {get; set; }
+    public List<Function> Functions { get; set; }
     public Block Block { get; set; }
     public ProgramNode()
     {
@@ -22,6 +23,10 @@ namespace Nodes
     public void AddFunction(Function f)
     {
       this.Functions.Add(f);
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitProgram(this);
     }
   }
 }

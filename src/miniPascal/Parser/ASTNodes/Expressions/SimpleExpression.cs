@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semantic;
 
 namespace Nodes
 {
@@ -13,6 +14,10 @@ namespace Nodes
       this.Style = "SimpleExpression";
       this.Sign = "+";
       this.Additions = new List<SimpleExpressionAddition>();
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitSimpleExpression(this);
     }
   }
 }

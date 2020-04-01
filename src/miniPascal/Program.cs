@@ -2,6 +2,7 @@
 using Errors;
 using IO;
 using FileHandler;
+using Semantic;
 
 namespace miniPascal
 {
@@ -16,7 +17,10 @@ namespace miniPascal
                 ArgHandler argHandler = new ArgHandler(args);
                 Reader reader = new FileReader(argHandler.FileName);
                 Parser p = new Parser(io, reader);
-                p.Parse();
+                Nodes.ProgramNode ast = p.Parse();
+
+                PrintVisitor visitor = new PrintVisitor(io);
+                visitor.VisitProgram(ast);
 
                 /*Scanner scanner = new Scanner(reader);
 

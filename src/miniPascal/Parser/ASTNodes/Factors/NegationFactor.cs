@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class NegationFactor : Node, Factor
@@ -9,6 +11,10 @@ namespace Nodes
     {
       this.Style = "NegationFactor";
       this.Size = false;
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitNegationFactor(this);
     }
   }
 }

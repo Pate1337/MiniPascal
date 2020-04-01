@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class IfStatement : Node, Statement
@@ -9,6 +11,10 @@ namespace Nodes
     public IfStatement()
     {
       this.Style = "IfStatement";
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

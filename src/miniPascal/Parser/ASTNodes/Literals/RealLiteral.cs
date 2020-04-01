@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class RealLiteral : Node, Factor
@@ -10,6 +12,10 @@ namespace Nodes
     {
       this.Style = "RealLiteral";
       this.Size = false;
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitRealLiteral(this);
     }
   }
 }

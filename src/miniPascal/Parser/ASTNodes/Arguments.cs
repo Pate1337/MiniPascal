@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semantic;
 
 namespace Nodes
 {
@@ -10,6 +11,10 @@ namespace Nodes
     {
       this.Style = "Arguments";
       this.Expressions = new List<Expression>();
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

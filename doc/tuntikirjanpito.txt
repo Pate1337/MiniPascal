@@ -7,3 +7,4 @@ token.
 29.03.2020 | 6h | Parseria koodattu.
 30.03.2020 | 4h | Parseri saatu suurimmaksi osin valmiiksi. Vaikeuksia aiheuttavat ennalta
 määritellyt muuttujat sekä samankaltaisudet kieliopin <statement>:issa.
+01.04.2020 | 5h | AST:n PrintVisitoria aloiteltu.

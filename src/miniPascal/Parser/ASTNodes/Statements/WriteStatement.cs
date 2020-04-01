@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class WriteStatement : Node, Statement
@@ -7,6 +9,10 @@ namespace Nodes
     public WriteStatement()
     {
       this.Style = "WriteStatement";
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

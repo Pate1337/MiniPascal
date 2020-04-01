@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class SimpleExpressionAddition : Node
@@ -8,6 +10,10 @@ namespace Nodes
     public SimpleExpressionAddition()
     {
       this.Style = "SimpleExpressionAddition";
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitSimpleExpressionAddition(this);
     }
   }
 }

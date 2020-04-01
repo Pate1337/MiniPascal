@@ -831,5 +831,46 @@ namespace miniPascalTests
       token = scanner.NextToken();
       Matches("writeln", TokenType.PredefinedIdentifier, 9, 0, token);
     }
+    private string CreateRandomString(int length)
+    {
+      // creating a StringBuilder object()
+      System.Text.StringBuilder str_build = new System.Text.StringBuilder();  
+      System.Random random = new System.Random();  
+
+      char letter;  
+
+      for (int i = 0; i < length; i++)
+      {
+        double flt = random.NextDouble();
+        if (flt < 0.2)
+        {
+          str_build.Append(" ");
+        }
+        else
+        {
+          int shift = System.Convert.ToInt32(System.Math.Floor(56 * flt));
+          letter = System.Convert.ToChar(shift + 33);
+          str_build.Append(letter); 
+        } 
+      }
+      return str_build.ToString();
+    }
+    [Test]
+    public void EfficiencyOfAutomaton()
+    {
+      string text = CreateRandomString(100);
+      Assert.AreEqual("moi", text);
+      string[] lines = { text };
+      Scanner scanner = InitScanner(lines);
+      var watch = System.Diagnostics.Stopwatch.StartNew();
+      // the code that you want to measure comes here
+      while (scanner.NextToken().Type != TokenType.EOF)
+      {
+        // just loop
+      }
+      watch.Stop();
+      var elapsedMs = watch.ElapsedMilliseconds;
+      Assert.AreEqual(0, elapsedMs);
+    }
   }
 }

@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class StringLiteral : Node, Factor
@@ -10,6 +12,10 @@ namespace Nodes
     {
       this.Style = "StringLiteral";
       this.Size = false;
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitStringLiteral(this);
     }
   }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semantic;
 
 namespace Nodes
 {
@@ -10,6 +11,10 @@ namespace Nodes
     {
       this.Style = "ReadStatement";
       this.Variables = new List<Variable>();
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

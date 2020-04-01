@@ -1,6 +1,6 @@
 program testprogram;
 
-procedure p();
+procedure p(var p1 : integer, p2 : string, p3 : array [not (x[5]).size] of Boolean);
 begin
 // <statement>
 // <simple-statement>
@@ -9,6 +9,7 @@ begin
 var a, b, c : integer;
 var x : array[5] of integer;
 x [3] := 4;
+read := "rea boi";
 writeln (x[x.size-1].size);
 x[2] := "yolo"
 
@@ -20,7 +21,9 @@ begin end;
 procedure p2(var a : integer, b : string, var c : integer);
 begin end;*}
 
-begin end .
+begin 
+writeln ("moi");
+end .
 
 {*
 TEST CASES:
@@ -30,4 +33,73 @@ TEST CASES:
 
 "program" <id> ";" <function> <main-block> "."
 --> "program" <id> ";" "function" <id> "(" parameters ")" ":" <type> ";" <block> ";" <main-block> "."
+*}
+
+{*
+<program> ::= "program" <id> ";" { <procedure> | <function> } <main-block> "."
+<procedure> ::= "procedure" <id> "(" parameters ")" ";" <block> ";"
+<function> ::= "function" <id> "(" parameters ")" ":" <type> ";" <block> ";"
+<var-declaration> ::= "var" <id> { "," <id> } ":" <type>
+<parameters> ::= [ "var" ] <id> ":" <type> { "," [ "var" ] <id> ":" <type> } | <empty>
+<type> ::= <simple type> | <array type>
+<array type> ::= "array" "[" [<integer expr>] "]" "of" <simple type>
+<simple type> ::= <type id>
+<block> ::= "begin" <statement> { ";" <statement> } [ ";" ] "end"
+<statement> ::= <simple statement> | <structured statement> | <var-declaration>
+<empty> ::=
+
+<simple statement> ::= <assignment statement> | <call> | <return statement> |
+      < read statement> | <write statement> | <assert statement>
+<assignment statement> ::= <variable> ":=" <expr>
+<call> ::= <id> "(" <arguments> ")"
+<arguments> ::= expr { "," expr } | <empty>
+<return statement> ::= "return" [ expr ]
+<read statement> ::= "read" "(" <variable> { "," <variable> } ")"
+<write statement> ::= "writeln" "(" <arguments> ")"
+<assert statement> ::= "assert" "(" <Boolean expr> ")"
+
+<structured statement> ::= <block> | <if statement> | <while statement>
+<if statement> ::= "if" <Boolean expr> "then" <statement> |
+                "if" <Boolean expr> "then" <statement> "else" <statement>
+<while statement> ::= "while" <Boolean expr> "do" <statement>
+
+<expr> ::= <simple expr> |
+<simple expr> <relational operator> <simple expr>
+<simple expr> ::= [ <sign> ] <term> { <adding operator> <term> }
+<term> ::= <factor> { <multiplying operator> <factor> }
+<factor> ::= <call> | <variable> | <literal> | "(" <expr> ")" | "not" <factor> | < factor> "." "size"
+<variable> ::= <variable id> [ "[" <integer expr> "]" ] 
+
+<relational operator> ::= "=" | "<>" | "<" | "<=" | ">=" | ">"
+<sign> ::= "+" | "-"
+<negation> ::= "not"
+<adding operator> ::= "+" | "-" | "or"
+<multiplying operator> ::= "*" | "/" | "%" | "and"
+
+<id> ::= <letter> { <letter> | <digit> | "_" }
+<literal> ::= <integer literal> | <real literal> | <string literal>
+<integer literal> ::= <digits>
+<digits> ::= <digit> { <digit> }
+<real literal> ::= <digits> "." <digits> [ "e" [ <sign> ] <digits>]
+<string literal> ::= "\"" { < a char or escape char > } "\""
+<letter> ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o |
+    p | q | r | s | t | u | v | w | x | y | z | A | B | C |
+    D | E | F | G | H | I | J | K | L | M | N | O | P
+    | Q | R | S | T | U | V | W | X | Y | Z
+<digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+<special symbol or keyword> ::= "+" | "-" | "*" | "%" | "=" | "<>" | "<" | ">" | "<=" | ">=" |
+    "(" | ")" | "[" | "]" | ":=" | "." | "," | ";" | ":" | "or" |
+    "and" | "not" | "if" | "then" | "else" | "of" | "while" | "do" |
+    "begin" | "end" | "var" | "array" | "procedure" |
+    "function" | "program" | "assert" | "return"
+<predefined id> ::= "Boolean" | "false" | "integer" | "read" | "real" | "size" |
+    "string" | "true" | "writeln" 
+*}
+
+{*
+First(<program>) = { "program" }
+
+First(<procedure>) = { "procedure" }
+Follow(<procedure>) = { "procedure", "function", "begin" }
+Predict(<procedure>) = { }
 *}

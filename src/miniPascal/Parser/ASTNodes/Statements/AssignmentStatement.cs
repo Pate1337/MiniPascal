@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class AssignmentStatement : Node, Statement
@@ -8,6 +10,10 @@ namespace Nodes
     public AssignmentStatement()
     {
       this.Style = "AssignmentStatement";
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

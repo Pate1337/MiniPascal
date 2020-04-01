@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semantic;
 
 namespace Nodes
 {
@@ -14,6 +15,10 @@ namespace Nodes
     public void AddStatement(Statement stmt)
     {
       this.statements.Add(stmt);
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

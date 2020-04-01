@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class TermMultiplicative : Node
@@ -8,6 +10,10 @@ namespace Nodes
     public TermMultiplicative()
     {
       this.Style = "TermMultiplicative";
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitTermMultiplicative(this);
     }
   }
 }

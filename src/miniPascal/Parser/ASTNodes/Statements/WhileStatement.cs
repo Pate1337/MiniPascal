@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class WhileStatement : Node, Statement
@@ -8,6 +10,10 @@ namespace Nodes
     public WhileStatement()
     {
       this.Style = "WhileStatement";
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

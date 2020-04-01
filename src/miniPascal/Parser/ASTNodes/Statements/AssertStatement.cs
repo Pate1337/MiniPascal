@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class AssertStatement : Node, Statement
@@ -7,6 +9,10 @@ namespace Nodes
     public AssertStatement()
     {
       this.Style = "AssertStatement";
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

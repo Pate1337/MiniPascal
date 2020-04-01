@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class ReferenceParameter : Node, Parameter
@@ -7,7 +9,11 @@ namespace Nodes
     public Type Type { get; set; }
     public ReferenceParameter()
     {
-      this.Style = "RefParameter";
+      this.Style = "ReferenceParameter";
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitReferenceParameter(this);
     }
   }
 }

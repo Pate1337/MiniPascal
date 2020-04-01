@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class Call : Node, Statement, Factor
@@ -10,6 +12,10 @@ namespace Nodes
     {
       this.Size = false;
       this.Style = "Call";
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

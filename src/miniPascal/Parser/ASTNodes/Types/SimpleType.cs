@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class SimpleType : Node, Type
@@ -7,6 +9,10 @@ namespace Nodes
     public SimpleType()
     {
       this.Style = "SimpleType";
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitSimpleType(this);
     }
   }
 }

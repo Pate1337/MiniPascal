@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class ArrayType : Node, Type
@@ -8,6 +10,10 @@ namespace Nodes
     public ArrayType()
     {
       this.Style = "ArrayType";
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitArrayType(this);
     }
   }
 }

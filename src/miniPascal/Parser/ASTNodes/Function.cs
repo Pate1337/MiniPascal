@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Semantic;
 
 namespace Nodes
 {
@@ -13,6 +14,10 @@ namespace Nodes
     {
       this.Style = "Function";
       this.Parameters = new List<Parameter>();
+    }
+    public void Visit(Visitor v)
+    {
+      
     }
   }
 }

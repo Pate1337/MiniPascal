@@ -1,3 +1,5 @@
+using Semantic;
+
 namespace Nodes
 {
   public class ValueParameter : Node, Parameter
@@ -8,6 +10,10 @@ namespace Nodes
     public ValueParameter()
     {
       this.Style = "ValueParameter";
+    }
+    public void Visit(Visitor v)
+    {
+      v.VisitValueParameter(this);
     }
   }
 }
