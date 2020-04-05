@@ -15,7 +15,7 @@ namespace Nodes
     }
     public void Visit(Visitor v)
     {
-      
+      v.VisitDeclaration(this);
     }
   }
 }

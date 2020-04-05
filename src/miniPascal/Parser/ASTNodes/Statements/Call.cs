@@ -12,10 +12,15 @@ namespace Nodes
     {
       this.Size = false;
       this.Style = "Call";
+      this.Arguments = null;
     }
-    public void Visit(Visitor v)
+    void Statement.Visit(Visitor v)
     {
-      
+      v.VisitCall(this);
+    }
+    BuiltInType Factor.Visit(Visitor v)
+    {
+      return v.VisitCall(this);
     }
   }
 }

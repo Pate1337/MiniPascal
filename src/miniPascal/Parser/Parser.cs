@@ -4,6 +4,7 @@ using Lexer;
 using FileHandler;
 using Nodes;
 using Errors;
+using Semantic;
 
 namespace miniPascal
 {
@@ -163,7 +164,7 @@ namespace miniPascal
       // Match(TokenType.PredefinedIdentifier, "writeln");
       Match(TokenType.LeftParenthesis);
       WriteStatement w = new WriteStatement();
-      w.Arguments = Arguments();
+      if (!NextIs(TokenType.RightParenthesis)) w.Arguments = Arguments();
       Match(TokenType.RightParenthesis);
       return w;
     }
@@ -267,7 +268,7 @@ namespace miniPascal
       SimpleExpression s = SimpleExpression();
       if (NextIs(TokenType.RelationalOperator))
       {
-        BinaryExpression b = new BinaryExpression();
+        BooleanExpression b = new BooleanExpression();
         b.Left = s;
         b.RelationalOperator = this.token.Value;
         Match(TokenType.RelationalOperator);
@@ -361,7 +362,8 @@ namespace miniPascal
       if (NextIs(TokenType.IntegerLiteral))
       {
         IntegerLiteral lit = new IntegerLiteral();
-        lit.Value = System.Int32.Parse(this.token.Value);
+        // lit.Value = System.Int32.Parse(this.token.Value);
+        lit.Value = this.token.Value;
         Match(TokenType.IntegerLiteral);
         HandlePossibleSize(lit);
         return lit;
@@ -435,7 +437,7 @@ namespace miniPascal
       Call call = new Call();
       call.Name = id;
       Match(TokenType.LeftParenthesis);
-      call.Arguments = Arguments();
+      if (!NextIs(TokenType.RightParenthesis)) call.Arguments = Arguments();
       Match(TokenType.RightParenthesis);
       return call;
     }
@@ -548,7 +550,7 @@ namespace miniPascal
       string t = this.token.Value;
       Match(TokenType.PredefinedIdentifier, allowed);
       SimpleType type = new SimpleType();
-      type.Type = t;
+      type.Type = DetermineType(t);
       return type;
     }
     private ArrayType ArrayType()
@@ -563,8 +565,31 @@ namespace miniPascal
       }
       Match(TokenType.RightBracket);
       Match(TokenType.Keyword, "of");
-      a.Type = SimpleType().Type;
+      a.Type = DetermineArrayType(SimpleType().Type);
+      // a.Type = SimpleType().Type;
       return a;
+    }
+    private BuiltInType DetermineType(string t)
+    {
+      switch (t)
+      {
+        case ("string"): return BuiltInType.String;
+        case ("integer"): return BuiltInType.Integer;
+        case ("Boolean"): return BuiltInType.Boolean;
+        case ("Real"): return BuiltInType.Real;
+        default: return BuiltInType.Error;
+      }
+    }
+    private BuiltInType DetermineArrayType(BuiltInType t)
+    {
+      switch (t)
+      {
+        case BuiltInType.String: return BuiltInType.StringArray;
+        case BuiltInType.Integer: return BuiltInType.IntegerArray;
+        case BuiltInType.Real: return BuiltInType.RealArray;
+        case BuiltInType.Boolean: return BuiltInType.BooleanArray;
+        default: return BuiltInType.Error;
+      }
     }
     private bool NextIs(TokenType expectedToken, string expectedValue)
     {

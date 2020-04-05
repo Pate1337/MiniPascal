@@ -8,3 +8,6 @@ token.
 30.03.2020 | 4h | Parseri saatu suurimmaksi osin valmiiksi. Vaikeuksia aiheuttavat ennalta
 määritellyt muuttujat sekä samankaltaisudet kieliopin <statement>:issa.
 01.04.2020 | 5h | AST:n PrintVisitoria aloiteltu.
+02.04.2020 | 5h | PrintVisitor saatu valmiiksi.
+04.04.2020 | 2h | Tyyppitarkastuksia aloitettu.
+05.04.2020 | 5h | Tyyppitarkastuksia jatkettu.

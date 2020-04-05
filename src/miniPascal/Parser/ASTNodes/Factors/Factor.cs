@@ -1,7 +1,10 @@
+using Semantic;
+
 namespace Nodes
 {
   public interface Factor
   {
     bool Size { get; set; }
+    BuiltInType Visit(Visitor v);
   }
 }

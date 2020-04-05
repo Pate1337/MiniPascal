@@ -4,19 +4,19 @@ namespace Nodes
 {
   // TODO: Change the name of this class.
   // Only used with RelationalOperators: <, >, <=, =, etc.
-  public class BinaryExpression : Node, Expression
+  public class BooleanExpression : Node, Expression
   {
     public string Style { get; set; }
     public SimpleExpression Left { get; set; }
     public string RelationalOperator { get; set; }
     public SimpleExpression Right { get; set; }
-    public BinaryExpression()
+    public BooleanExpression()
     {
-      this.Style = "BinaryExpression";
+      this.Style = "BooleanExpression";
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitBinaryExpression(this);
+      return v.VisitBooleanExpression(this);
     }
   }
 }

@@ -11,9 +11,9 @@ namespace Nodes
     {
       this.Style = "TermMultiplicative";
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitTermMultiplicative(this);
+      return v.VisitTermMultiplicative(this);
     }
   }
 }

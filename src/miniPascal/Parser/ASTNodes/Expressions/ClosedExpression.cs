@@ -12,9 +12,9 @@ namespace Nodes
       this.Style = "ClosedExpression";
       this.Size = false;
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitClosedExpression(this);
+      return v.VisitClosedExpression(this);
     }
   }
 }

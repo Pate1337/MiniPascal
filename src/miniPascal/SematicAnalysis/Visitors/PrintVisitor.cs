@@ -7,71 +7,293 @@ namespace Semantic
   {
     private IOHandler io;
     private int depth;
+    private string IncludeOnNextNewline;
     public PrintVisitor(IOHandler io)
     {
       this.io = io;
       this.depth = 0;
+      this.IncludeOnNextNewline = "";
+    }
+    private void EnterNode(Node n)
+    {
+      this.io.Write($"\n{HandleDepth(this.depth)}{this.IncludeOnNextNewline}(<{n.Style}>: ");
+      this.depth++;
+      this.IncludeOnNextNewline = "";
+    }
+    private void IncludeTextOnNextNewline(string text)
+    {
+      this.IncludeOnNextNewline = text;
+    }
+    private void ExitNode()
+    {
+      this.io.Write(")");
+      this.depth--;
     }
     public void VisitProgram(ProgramNode p)
     {
-      this.io.Write($"(<{p.Style}>: Name: {p.Name}, Procedures:");
+      /*
+      public string Style { get; set; }
+      public string Name { get; set; }
+      public List<Procedure> Procedures {get; set; }
+      public List<Function> Functions { get; set; }
+      public Block Block { get; set; }
+      */
+      this.io.Write($"(<{p.Style}>: Name: {p.Name},");
       this.depth++;
-      foreach (Procedure procedure in p.Procedures)
+      if (p.Procedures.Count > 0)
       {
-        procedure.Visit(this);
+        IncludeTextOnNextNewline("Procedures: [");
+        foreach (Procedure procedure in p.Procedures) procedure.Visit(this);
+        this.io.Write("],");
       }
+      if (p.Functions.Count > 0)
+      {
+        IncludeTextOnNextNewline("Functions: [");
+        foreach (Function f in p.Functions) f.Visit(this);
+        this.io.Write("],");
+      }
+      IncludeTextOnNextNewline("Block: ");
+      p.Block.Visit(this);
       this.depth--;
       this.io.Write(")\n");
     }
     public void VisitProcedure(Procedure p)
     {
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{p.Style}>: Name: {p.Name}, Parameters:");
-      this.depth++;
-      foreach (Node param in p.Parameters)
+      /*
+      public string Style { get; set; }
+      public string Name { get; set; }
+      public Block Block { get; set; }
+      public List<Parameter> Parameters { get; set; }
+      */
+      EnterNode(p);
+      this.io.Write($"Name: {p.Name},");
+      if (p.Parameters.Count > 0)
       {
-        param.Visit(this);
+        IncludeTextOnNextNewline("Parameters: [");
+        foreach (Parameter param in p.Parameters) param.Visit(this);
+        this.io.Write("],");
       }
-      this.depth--;
-      this.io.Write(")");
+      IncludeTextOnNextNewline("Block:");
+      p.Block.Visit(this);
+      ExitNode();
+    }
+    public void VisitFunction(Function f)
+    {
+      /*
+      public string Style { get; set; }
+      public string Name { get; set; }
+      public Block Block { get; set; }
+      public Type Type { get; set; }
+      public List<Parameter> Parameters;
+      */
+      EnterNode(f);
+      this.io.Write($"Name: {f.Name},");
+      if (f.Parameters.Count > 0)
+      {
+        IncludeTextOnNextNewline("Parameters: [");
+        foreach (Parameter param in f.Parameters) param.Visit(this);
+        this.io.Write("],");
+      }
+      IncludeTextOnNextNewline("Type: ");
+      f.Type.Visit(this);
+      this.io.Write(",");
+      IncludeTextOnNextNewline("Block: ");
+      f.Block.Visit(this);
+      ExitNode();
+    }
+    public void VisitBlock(Block b)
+    {
+      /*
+      public string Style { get; set; }
+      public List<Statement> statements;
+      */
+      EnterNode(b);
+      if (b.statements.Count > 0)
+      {
+        IncludeTextOnNextNewline("Statements: [");
+        foreach (Statement stmt in b.statements) stmt.Visit(this);
+        this.io.Write("]");
+      }
+      ExitNode();
+    }
+    public BuiltInType VisitCall(Call c)
+    {
+      /*
+      public string Style { get; set; }
+      public string Name { get; set; }
+      public Arguments Arguments { get; set; }
+      public bool Size { get; set; }
+      */
+      EnterNode(c);
+      this.io.Write($"Name: {c.Name}, Size: {c.Size}");
+      if (c.Arguments != null)
+      {
+        this.io.Write(",");
+        IncludeTextOnNextNewline("Arguments: [");
+        c.Arguments.Visit(this);
+        this.io.Write("]");
+      }
+      ExitNode();
+      return BuiltInType.Error;
+    }
+    public void VisitAssertStatement(AssertStatement s)
+    {
+      /*
+      public string Style { get; set; }
+      public Expression BooleanExpression { get; set; }
+      */
+      EnterNode(s);
+      this.io.Write("BooleanExpression:");
+      s.BooleanExpression.Visit(this);
+      ExitNode();
+    }
+    public void VisitAssignmentStatement(AssignmentStatement s)
+    {
+      /*
+      public string Style { get; set; }
+      public Variable Variable { get; set; }
+      public Expression Expression { get; set; }
+      */
+      EnterNode(s);
+      this.io.Write("Variable:");
+      s.Variable.Visit(this);
+      this.io.Write(", Expression:");
+      s.Expression.Visit(this);
+      ExitNode();
+    }
+    public void VisitDeclaration(Declaration s)
+    {
+      /*
+      public string Style { get; set; }
+      public List<string> Identifiers { get; set; }
+      public Type Type { get; set; }
+      */
+      EnterNode(s);
+      this.io.Write("Identifiers: [");
+      foreach (string id in s.Identifiers) this.io.Write($"{id}, ");
+      this.io.Write("], Type:");
+      s.Type.Visit(this);
+      ExitNode();
+    }
+    public void VisitIfStatement(IfStatement s)
+    {
+      /*
+      public string Style { get; set; }
+      public Expression BooleanExpression { get; set; }
+      public Statement ThenStatement { get; set; }
+      public Statement ElseStatement { get; set; }
+      */
+      EnterNode(s);
+      this.io.Write("BooleanExpression:");
+      s.BooleanExpression.Visit(this);
+      this.io.Write(", ThenStatement:");
+      s.ThenStatement.Visit(this);
+      if (s.ElseStatement != null)
+      {
+        this.io.Write(", ElseStatement:");
+        s.ElseStatement.Visit(this);
+      }
+      ExitNode();
+    }
+    public void VisitReadStatement(ReadStatement s)
+    {
+      /*
+      public string Style { get; set; }
+      public List<Variable> Variables { get; set; }
+      */
+      EnterNode(s);
+      this.io.Write("Variables: [");
+      foreach (Variable v in s.Variables) v.Visit(this);
+      this.io.Write("]");
+      ExitNode();
+    }
+    public void VisitReturnStatement(ReturnStatement s)
+    {
+      /*
+      public string Style { get; set; }
+      public Expression Expression { get; set; }
+      */
+      EnterNode(s);
+      if (s.Expression != null)
+      {
+        this.io.Write("Expression:");
+        s.Expression.Visit(this);
+      }
+      ExitNode();
+    }
+    public void VisitWhileStatement(WhileStatement s)
+    {
+      /*
+      public string Style { get; set; }
+      public Expression BooleanExpression { get; set; }
+      public Statement Statement { get; set; }
+      */
+      EnterNode(s);
+      this.io.Write("BooleanExpression:");
+      s.BooleanExpression.Visit(this);
+      this.io.Write(", Statement:");
+      s.Statement.Visit(this);
+      ExitNode();
+    }
+    public void VisitWriteStatement(WriteStatement s)
+    {
+      /*
+      public string Style { get; set; }
+      public Arguments Arguments { get; set; }
+      */
+      EnterNode(s);
+      if (s.Arguments != null)
+      {
+        this.io.Write("Arguments:");
+        s.Arguments.Visit(this);
+      }
+      ExitNode();
+    }
+    public void VisitArguments(Arguments a)
+    {
+      /*
+      public string Style { get; set; }
+      public List<Expression> Expressions { get; set; }
+      */
+      EnterNode(a);
+      if (a.Expressions.Count > 0)
+      {
+        this.io.Write("Expressions: [");
+        foreach (Expression e in a.Expressions) e.Visit(this);
+        this.io.Write("]");
+      }
+      ExitNode();
     }
     public void VisitReferenceParameter(ReferenceParameter rp)
     {
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{rp.Style}>: Name: {rp.Name}, Type:");
-      this.depth++;
-      Node n = (Node) rp.Type;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      EnterNode(rp);
+      this.io.Write($"Name: {rp.Name}, Type:");
+      rp.Type.Visit(this);
+      ExitNode();
     }
     public void VisitValueParameter(ValueParameter vp)
     {
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{vp.Style}>: Name: {vp.Name}, Type:");
-      this.depth++;
-      Node n = (Node) vp.Type;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      EnterNode(vp);
+      this.io.Write($"Name: {vp.Name}, Type:");
+      vp.Type.Visit(this);
+      ExitNode();
     }
-    public void VisitSimpleType(SimpleType t)
+    public BuiltInType VisitSimpleType(SimpleType t)
     {
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{t.Style}>: Type: {t.Type}");
-      this.io.Write(")");
+      EnterNode(t);
+      this.io.Write($"Type: {t.Type}");
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitArrayType(ArrayType t)
+    public BuiltInType VisitArrayType(ArrayType t)
     {
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{t.Style}>: Type: {t.Type}, IntegerExpression:");
-      this.depth++;
-      Node n = (Node) t.IntegerExpression;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      EnterNode(t);
+      this.io.Write($"Type: {t.Type}, IntegerExpression:");
+      t.IntegerExpression.Visit(this);
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitSimpleExpression(SimpleExpression e)
+    public BuiltInType VisitSimpleExpression(SimpleExpression e)
     {
       /*
       public string Style { get; set; }
@@ -79,20 +301,19 @@ namespace Semantic
       public Term Term { get; set; }
       public List<SimpleExpressionAddition> Additions { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{e.Style}>: Sign: {e.Sign}, Term:");
-      this.depth++;
-      Node n = (Node) e.Term;
-      n.Visit(this);
-      this.io.Write(", Additions:");
-      foreach (Node a in e.Additions)
+      EnterNode(e);
+      this.io.Write($"Sign: {e.Sign}, Term:");
+      e.Term.Visit(this);
+      if (e.Additions.Count > 0)
       {
-        a.Visit(this);
+        this.io.Write(", Additions: [");
+        foreach (SimpleExpressionAddition a in e.Additions) a.Visit(this);
+        this.io.Write("]");
       }
-      this.depth--;
-      this.io.Write(")");
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitBinaryExpression(BinaryExpression e)
+    public BuiltInType VisitBooleanExpression(BooleanExpression e)
     {
       /*
       public string Style { get; set; }
@@ -100,131 +321,122 @@ namespace Semantic
       public string RelationalOperator { get; set; }
       public SimpleExpression Right { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{e.Style}>: RelationalOperator: {e.RelationalOperator}, Left:");
-      this.depth++;
-      Node n = (Node) e.Left;
-      n.Visit(this);
+      EnterNode(e);
+      this.io.Write($"RelationalOperator: {e.RelationalOperator}, Left:");
+      e.Left.Visit(this);
       this.io.Write(", Right:");
-      n = (Node) e.Right;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      e.Right.Visit(this);
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitClosedExpression(ClosedExpression e)
+    public BuiltInType VisitClosedExpression(ClosedExpression e)
     {
       /*
       public string Style { get; set; }
       public bool Size { get; set; }
       public Expression Expression { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{e.Style}>: Size: {e.Size}, Expression:");
-      this.depth++;
-      Node n = (Node) e.Expression;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      EnterNode(e);
+      this.io.Write($"Size: {e.Size}, Expression:");
+      e.Expression.Visit(this);
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitSimpleExpressionAddition(SimpleExpressionAddition e)
+    public BuiltInType VisitSimpleExpressionAddition(SimpleExpressionAddition e)
     {
       /*
       public string AddingOperator { get; set; }
       public Term Term { get; set; }
       public string Style { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{e.Style}>: AddingOperator: {e.AddingOperator}, Term:");
-      Node n = (Node) e.Term;
-      this.depth++;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      EnterNode(e);
+      this.io.Write($"AddingOperator: {e.AddingOperator}, Term:");
+      e.Term.Visit(this);
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitTerm(Term t)
+    public BuiltInType VisitTerm(Term t)
     {
       /*
       public string Style { get; set; }
       public Factor Factor { get; set; }
       public List<TermMultiplicative> Multiplicatives { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{t.Style}>: Factor:");
-      this.depth++;
-      Node n = (Node) t.Factor;
-      n.Visit(this);
-      this.io.Write(", Multiplicatives:");
-      foreach (Node m in t.Multiplicatives)
+      EnterNode(t);
+      this.io.Write("Factor:");
+      t.Factor.Visit(this);
+      if (t.Multiplicatives.Count > 0)
       {
-        m.Visit(this);
+        this.io.Write(", Multiplicatives: [");
+        foreach (TermMultiplicative m in t.Multiplicatives) m.Visit(this);
+        this.io.Write("]");
       }
-      this.depth--;
-      this.io.Write(")");
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitTermMultiplicative(TermMultiplicative t)
+    public BuiltInType VisitTermMultiplicative(TermMultiplicative t)
     {
       /*
       public string MultiplyingOperator { get; set; }
       public Factor Factor { get; set; }
       public string Style { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{t.Style}>: MultiplyingOperator: {t.MultiplyingOperator}, Factor:");
-      this.depth++;
-      Node n = (Node) t.Factor;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      EnterNode(t);
+      this.io.Write($"MultiplyingOperator: {t.MultiplyingOperator}, Factor:");
+      t.Factor.Visit(this);
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitIntegerLiteral(IntegerLiteral l)
+    public BuiltInType VisitIntegerLiteral(IntegerLiteral l)
     {
       /*
       public string Style { get; set; }
       public bool Size { get; set; }
       public int Value { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{l.Style}>: Size: {l.Size}, Value: {l.Value}");
-      this.io.Write(")");
+      EnterNode(l);
+      this.io.Write($"Size: {l.Size}, Value: {l.Value}");
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitStringLiteral(StringLiteral l)
+    public BuiltInType VisitStringLiteral(StringLiteral l)
     {
       /*
       public string Style { get; set; }
       public bool Size { get; set; }
       public string Value { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{l.Style}>: Size: {l.Size}, Value: {l.Value}");
-      this.io.Write(")");
+      EnterNode(l);
+      this.io.Write($"Size: {l.Size}, Value: {l.Value}");
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitRealLiteral(RealLiteral l)
+    public BuiltInType VisitRealLiteral(RealLiteral l)
     {
       /*
       public string Style { get; set; }
       public bool Size { get; set; }
       public string Value { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{l.Style}>: Size: {l.Size}, Value: {l.Value}");
-      this.io.Write(")");
+      EnterNode(l);
+      this.io.Write($"Size: {l.Size}, Value: {l.Value}");
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitNegationFactor(NegationFactor f)
+    public BuiltInType VisitNegationFactor(NegationFactor f)
     {
       /*
       public string Style { get; set; }
       public bool Size { get; set; }
       public Factor Factor { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{f.Style}>: Size: {f.Size}, Factor:");
-      Node n = (Node) f.Factor;
-      this.depth++;
-      n.Visit(this);
-      this.depth--;
-      this.io.Write(")");
+      EnterNode(f);
+      this.io.Write($"Size: {f.Size}, Factor:");
+      f.Factor.Visit(this);
+      ExitNode();
+      return BuiltInType.Error;
     }
-    public void VisitVariable(Variable v)
+    public BuiltInType VisitVariable(Variable v)
     {
       /*
       public string Style { get; set; }
@@ -232,24 +444,20 @@ namespace Semantic
       public bool Size { get; set; }
       public Expression IntegerExpression { get; set; }
       */
-      string spaces = HandleDepth(this.depth);
-      this.io.Write($"\n{spaces}(<{v.Style}>: Name: {v.Name}, Size: {v.Size}, IntegerExpression:");
+      EnterNode(v);
+      this.io.Write($"Name: {v.Name}, Size: {v.Size}");
       if (v.IntegerExpression != null)
       {
-        this.depth++;
-        Node n = (Node) v.IntegerExpression;
-        n.Visit(this);
-        this.depth--;
+        this.io.Write(", IntegerExpression:");
+        v.IntegerExpression.Visit(this);
       }
-      this.io.Write(")");
+      ExitNode();
+      return BuiltInType.Error;
     }
     private string HandleDepth(int depth)
     {
       string spaces = "";
-      for (int i = 0; i < depth; i++)
-      {
-        spaces += " ";
-      }
+      for (int i = 0; i < depth; i++) spaces += " ";
       return spaces;
     }
   }

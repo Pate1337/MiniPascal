@@ -1,7 +1,10 @@
+using Semantic;
+
 namespace Nodes
 {
   public interface Type
   {
-    string Type { get; set; }
+    BuiltInType Type { get; set; }
+    BuiltInType Visit(Visitor v);
   }
 }

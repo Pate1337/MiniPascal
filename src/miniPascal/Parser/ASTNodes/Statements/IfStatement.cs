@@ -11,10 +11,11 @@ namespace Nodes
     public IfStatement()
     {
       this.Style = "IfStatement";
+      this.ElseStatement = null;
     }
     public void Visit(Visitor v)
     {
-      
+      v.VisitIfStatement(this);
     }
   }
 }

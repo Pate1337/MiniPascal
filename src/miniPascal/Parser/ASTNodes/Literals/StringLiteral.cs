@@ -13,9 +13,9 @@ namespace Nodes
       this.Style = "StringLiteral";
       this.Size = false;
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitStringLiteral(this);
+      return v.VisitStringLiteral(this);
     }
   }
 }

@@ -9,10 +9,11 @@ namespace Nodes
     public WriteStatement()
     {
       this.Style = "WriteStatement";
+      this.Arguments = null;
     }
     public void Visit(Visitor v)
     {
-      
+      v.VisitWriteStatement(this);
     }
   }
 }

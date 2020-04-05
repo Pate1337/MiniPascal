@@ -11,9 +11,9 @@ namespace Nodes
     {
       this.Style = "SimpleExpressionAddition";
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitSimpleExpressionAddition(this);
+      return v.VisitSimpleExpressionAddition(this);
     }
   }
 }

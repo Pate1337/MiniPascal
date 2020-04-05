@@ -13,9 +13,9 @@ namespace Nodes
       this.Style = "RealLiteral";
       this.Size = false;
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitRealLiteral(this);
+      return v.VisitRealLiteral(this);
     }
   }
 }

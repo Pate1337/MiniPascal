@@ -6,16 +6,15 @@ namespace Nodes
   {
     public string Style { get; set; }
     public bool Size { get; set; }
-    public int Value { get; set; }
-
+    public string Value { get; set; }
     public IntegerLiteral()
     {
       this.Style = "IntegerLiteral";
       this.Size = false;
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitIntegerLiteral(this);
+      return v.VisitIntegerLiteral(this);
     }
   }
 }

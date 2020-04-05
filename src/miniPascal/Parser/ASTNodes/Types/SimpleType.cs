@@ -2,17 +2,17 @@ using Semantic;
 
 namespace Nodes
 {
-  public class SimpleType : Node, Type
+  public class SimpleType : Type, Node
   {
     public string Style { get; set; }
-    public string Type { get; set; }
+    public BuiltInType Type { get; set; }
     public SimpleType()
     {
       this.Style = "SimpleType";
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitSimpleType(this);
+      return v.VisitSimpleType(this);
     }
   }
 }

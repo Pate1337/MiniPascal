@@ -2,18 +2,18 @@ using Semantic;
 
 namespace Nodes
 {
-  public class ArrayType : Node, Type
+  public class ArrayType : Type, Node
   {
     public string Style { get; set; }
-    public string Type { get; set; }
+    public BuiltInType Type { get; set; }
     public Expression IntegerExpression { get; set; }  
     public ArrayType()
     {
       this.Style = "ArrayType";
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitArrayType(this);
+      return v.VisitArrayType(this);
     }
   }
 }

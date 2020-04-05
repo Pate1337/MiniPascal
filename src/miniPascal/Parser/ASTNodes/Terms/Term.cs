@@ -13,9 +13,9 @@ namespace Nodes
       this.Style = "Term";
       this.Multiplicatives = new List<TermMultiplicative>();
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitTerm(this);
+      return v.VisitTerm(this);
     }
   }
 }

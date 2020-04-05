@@ -1,7 +1,10 @@
-/*namespace Nodes
+using Semantic;
+
+namespace Nodes
 {
-  public interface Literal<T>
+  public interface Literal
   {
-    T Value { get; set; }
+    BuiltInType Visit(Visitor v);
+    string Value { get; set; }
   }
-}*/
+}

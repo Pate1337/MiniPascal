@@ -6,7 +6,7 @@ namespace Nodes
   public class Block : Node, Statement
   {
     public string Style { get; set; }
-    public List<Statement> statements;
+    public List<Statement> statements { get; set; }
     public Block(string style)
     {
       this.Style = style;
@@ -18,7 +18,7 @@ namespace Nodes
     }
     public void Visit(Visitor v)
     {
-      
+      v.VisitBlock(this);
     }
   }
 }

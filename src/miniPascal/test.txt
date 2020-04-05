@@ -1,6 +1,6 @@
 program testprogram;
 
-procedure p(var p1 : integer, p2 : string, p3 : array [not (x[5]).size] of Boolean);
+procedure p(var p1 : integer, p2 : string, p3 : array [proc()] of Boolean);
 begin
 // <statement>
 // <simple-statement>
@@ -15,14 +15,18 @@ x[2] := "yolo"
 
 end;
 
-{*function f (var a : integer) : string;
-begin end;
+procedure f ();
+begin
+read (x);
+end;
 
-procedure p2(var a : integer, b : string, var c : integer);
+{*procedure p2(var a : integer, b : string, var c : integer);
 begin end;*}
 
 begin 
-writeln ("moi");
+var a, b, c : string;
+var d : array[4] of integer;
+writeln((5=5) and 2 + 3);
 end .
 
 {*

@@ -6,20 +6,32 @@ namespace Semantic
   {
     void VisitProgram(ProgramNode p);
     void VisitProcedure(Procedure p);
+    void VisitFunction(Function f);
     void VisitReferenceParameter(ReferenceParameter rp);
     void VisitValueParameter(ValueParameter vp);
-    void VisitArrayType(ArrayType t);
-    void VisitSimpleType(SimpleType t);
-    void VisitSimpleExpression(SimpleExpression e);
-    void VisitBinaryExpression(BinaryExpression e);
-    void VisitClosedExpression(ClosedExpression e);
-    void VisitSimpleExpressionAddition(SimpleExpressionAddition e);
-    void VisitTerm(Term t);
-    void VisitTermMultiplicative(TermMultiplicative t);
-    void VisitIntegerLiteral(IntegerLiteral l);
-    void VisitStringLiteral(StringLiteral l);
-    void VisitRealLiteral(RealLiteral l);
-    void VisitNegationFactor(NegationFactor f);
-    void VisitVariable(Variable v);
+    BuiltInType VisitArrayType(ArrayType t);
+    BuiltInType VisitSimpleType(SimpleType t);
+    BuiltInType VisitSimpleExpression(SimpleExpression e);
+    BuiltInType VisitBooleanExpression(BooleanExpression e);
+    BuiltInType VisitClosedExpression(ClosedExpression e);
+    BuiltInType VisitSimpleExpressionAddition(SimpleExpressionAddition e);
+    BuiltInType VisitTerm(Term t);
+    BuiltInType VisitTermMultiplicative(TermMultiplicative t);
+    BuiltInType VisitIntegerLiteral(IntegerLiteral l);
+    BuiltInType VisitStringLiteral(StringLiteral l);
+    BuiltInType VisitRealLiteral(RealLiteral l);
+    BuiltInType VisitNegationFactor(NegationFactor f);
+    BuiltInType VisitVariable(Variable v);
+    BuiltInType VisitCall(Call c);
+    void VisitArguments(Arguments a);
+    void VisitBlock(Block b);
+    void VisitAssertStatement(AssertStatement s);
+    void VisitAssignmentStatement(AssignmentStatement s);
+    void VisitDeclaration(Declaration s);
+    void VisitIfStatement(IfStatement s);
+    void VisitReadStatement(ReadStatement s);
+    void VisitReturnStatement(ReturnStatement s);
+    void VisitWhileStatement(WhileStatement s);
+    void VisitWriteStatement(WriteStatement s);
   }
 }

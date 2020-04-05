@@ -15,9 +15,9 @@ namespace Nodes
       this.Sign = "+";
       this.Additions = new List<SimpleExpressionAddition>();
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitSimpleExpression(this);
+      return v.VisitSimpleExpression(this);
     }
   }
 }

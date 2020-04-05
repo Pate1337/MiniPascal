@@ -15,9 +15,9 @@ namespace Nodes
       this.Style = "Variable";
       this.IntegerExpression = null;
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitVariable(this);
+      return v.VisitVariable(this);
     }
   }
 }

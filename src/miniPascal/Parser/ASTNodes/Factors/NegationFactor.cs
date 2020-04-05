@@ -12,9 +12,9 @@ namespace Nodes
       this.Style = "NegationFactor";
       this.Size = false;
     }
-    public void Visit(Visitor v)
+    public BuiltInType Visit(Visitor v)
     {
-      v.VisitNegationFactor(this);
+      return v.VisitNegationFactor(this);
     }
   }
 }

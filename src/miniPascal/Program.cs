@@ -19,8 +19,13 @@ namespace miniPascal
                 Parser p = new Parser(io, reader);
                 Nodes.ProgramNode ast = p.Parse();
 
-                PrintVisitor visitor = new PrintVisitor(io);
-                visitor.VisitProgram(ast);
+                //PrintVisitor visitor = new PrintVisitor(io);
+                //visitor.VisitProgram(ast);
+
+                TypeCheckVisitor v = new TypeCheckVisitor();
+                v.VisitProgram(ast);
+
+                System.Console.WriteLine(5 == 5 + 2 + 3);
 
                 /*Scanner scanner = new Scanner(reader);
 

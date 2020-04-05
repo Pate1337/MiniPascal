@@ -9,10 +9,11 @@ namespace Nodes
     public ReturnStatement()
     {
       this.Style = "ReturnStatement";
+      this.Expression = null;
     }
     public void Visit(Visitor v)
     {
-      
+      v.VisitReturnStatement(this);
     }
   }
 }
