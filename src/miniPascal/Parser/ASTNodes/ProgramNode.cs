@@ -10,6 +10,8 @@ namespace Nodes
     public List<Procedure> Procedures {get; set; }
     public List<Function> Functions { get; set; }
     public Block Block { get; set; }
+    // Location of Name
+    public Location Location { get; set; }
     public ProgramNode()
     {
       this.Style = "Program";

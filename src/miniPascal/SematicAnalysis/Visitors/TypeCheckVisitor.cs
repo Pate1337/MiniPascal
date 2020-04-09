@@ -1,20 +1,24 @@
 using System.Collections.Generic;
 using Errors;
 using Nodes;
+using FileHandler;
+using IO;
 
 namespace Semantic
 {
   public class TypeCheckVisitor : Visitor
   {
+    private IOHandler io;
     private List<Error> Errors;
     private SymbolTable Table;
-    private string ErrorMessage;
+    private Reader reader;
 
-    public TypeCheckVisitor()
+    public TypeCheckVisitor(IOHandler io, Reader reader)
     {
+      this.io = io;
       this.Errors = new List<Error>();
       this.Table = new SymbolTable();
-      this.ErrorMessage = "";
+      this.reader = reader;
     }
     public void VisitProgram(ProgramNode p)
     {
@@ -66,11 +70,12 @@ namespace Semantic
       public BuiltInType Type { get; set; }
       public Expression IntegerExpression { get; set; } 
       */
+      if (t.IntegerExpression == null) return t.Type;
       BuiltInType exprType = t.IntegerExpression.Visit(this);
       if (exprType == BuiltInType.Error) return BuiltInType.Error;
       if (exprType != BuiltInType.Integer)
       {
-        System.Console.WriteLine($"Expected Integer expression, instead got {exprType}");
+        new Error($"Expected \"[\" Integer \"]\", instead got \"[\" {exprType} \"]\".", t.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
       return t.Type;
@@ -93,29 +98,18 @@ namespace Semantic
       */
       BuiltInType termType = e.Term.Visit(this);
       if (termType == BuiltInType.Error) return BuiltInType.Error;
-      if (e.Sign == "-" && termType != BuiltInType.Integer && termType != BuiltInType.Real)
+      if (e.Sign != null && termType != BuiltInType.Integer && termType != BuiltInType.Real)
       {
-        System.Console.WriteLine($"Can not have - in front of {termType}");
+        // this.io.WriteLine(new Error($"Can not have \"{e.Sign}\" in front of {termType}.", e.Location, this.reader).ToString());
+        new Error($"Can not have \"{e.Sign}\" in front of {termType}.", e.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
       foreach (SimpleExpressionAddition a in e.Additions)
       {
         BuiltInType additionType = a.Visit(this);
-        string op = a.AddingOperator;
-        if (additionType == BuiltInType.Error)
-        {
-          this.ErrorMessage = $"Can not do operation \"{op}\" between {termType} and {this.ErrorMessage}";
-          System.Console.WriteLine(this.ErrorMessage);
-          this.ErrorMessage = "";
-          return BuiltInType.Error;
-        }
-        BuiltInType temp = termType;
-        termType = HandleAdditionOperation(op, termType, additionType);
-        if (termType == BuiltInType.Error)
-        {
-          System.Console.WriteLine($"Can not do operation \"{op}\" between {temp} and {additionType}");
-          return BuiltInType.Error;
-        }
+        if (additionType == BuiltInType.Error) return BuiltInType.Error;
+        termType = HandleAdditionOperation(a.AddingOperator, termType, additionType, a.Location);
+        if (termType == BuiltInType.Error) return BuiltInType.Error;
       }
       return termType;
     }
@@ -132,7 +126,7 @@ namespace Semantic
       if (leftType == BuiltInType.Error || rightType == BuiltInType.Error) return BuiltInType.Error;
       if (leftType != rightType)
       {
-        System.Console.WriteLine($"Can not do operation \"{e.RelationalOperator}\" between {leftType} and {rightType}");
+        new OperationError(e.RelationalOperator, leftType, rightType, e.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
       // <relational operator> ::= "=" | "<>" | "<" | "<=" | ">=" | ">"
@@ -151,7 +145,7 @@ namespace Semantic
       {
         if (IsArray(exprType)) return BuiltInType.Integer;
         // TODO: If String size possible, add here
-        System.Console.WriteLine($"Can not get size of {exprType}");
+        new Error($"Can not get size of {exprType}.", e.SizeLocation, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
       return exprType;
@@ -165,13 +159,7 @@ namespace Semantic
       */
       BuiltInType termType = e.Term.Visit(this);
       if (termType == BuiltInType.Error) return BuiltInType.Error;
-      // <adding operator> ::= "+" | "-" | "or"
-      BuiltInType addType = HandleAdditionOperation(e.AddingOperator, termType);
-      if (addType == BuiltInType.Error)
-      {
-        this.ErrorMessage = $"{termType}";
-        return BuiltInType.Error;
-      }
+      BuiltInType addType = HandleAdditionOperation(e.AddingOperator, termType, e.Location);
       return addType;
     }
     public BuiltInType VisitTerm(Term t)
@@ -186,21 +174,9 @@ namespace Semantic
       foreach (TermMultiplicative m in t.Multiplicatives)
       {
         BuiltInType mulType = m.Visit(this);
-        string op = m.MultiplyingOperator;
-        if (mulType == BuiltInType.Error)
-        {
-          this.ErrorMessage = $"Can not do operation \"{op}\" between {factorType} and {this.ErrorMessage}";
-          System.Console.WriteLine(this.ErrorMessage);
-          this.ErrorMessage = "";
-          return BuiltInType.Error;
-        }
-        BuiltInType temp = factorType;
-        factorType = HandleMultiplyingOperation(op, factorType, mulType);
-        if (factorType == BuiltInType.Error)
-        {
-          System.Console.WriteLine($"Can not do operation \"{op}\" between {temp} and {mulType}");
-          return BuiltInType.Error;
-        }
+        if (mulType == BuiltInType.Error) return BuiltInType.Error;
+        factorType = HandleMultiplyingOperation(m.MultiplyingOperator, factorType, mulType, m.Location);
+        if (factorType == BuiltInType.Error) return BuiltInType.Error;
       }
       return factorType;
     }
@@ -214,13 +190,7 @@ namespace Semantic
       // <multiplying operator> ::= "*" | "/" | "%" | "and"
       BuiltInType factorType = t.Factor.Visit(this);
       if (factorType == BuiltInType.Error) return BuiltInType.Error;
-      string op = t.MultiplyingOperator;
-      BuiltInType mulType = HandleMultiplyingOperation(op, factorType);
-      if (mulType == BuiltInType.Error)
-      {
-        this.ErrorMessage = $"{factorType}";
-        return BuiltInType.Error;
-      }
+      BuiltInType mulType = HandleMultiplyingOperation(t.MultiplyingOperator, factorType, t.Location);
       return mulType;
     }
     public BuiltInType VisitIntegerLiteral(IntegerLiteral l)
@@ -232,7 +202,7 @@ namespace Semantic
       */
       if (l.Size)
       {
-        System.Console.WriteLine("Can not call size method for IntegerLiteral");
+        new Error("Can not call size method for IntegerLiteral", l.SizeLocation, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
       return BuiltInType.Integer;
@@ -241,7 +211,7 @@ namespace Semantic
     {
       if (l.Size)
       {
-        System.Console.WriteLine("Can not call size method for StringLiteral");
+        new Error("Can not call size method for StringLiteral", l.SizeLocation, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
       return BuiltInType.String;
@@ -250,7 +220,7 @@ namespace Semantic
     {
       if (l.Size)
       {
-        System.Console.WriteLine("Can not call size method for RealLiteral");
+        new Error("Can not call size method for RealLiteral", l.SizeLocation, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
       return BuiltInType.Real;
@@ -309,128 +279,159 @@ namespace Semantic
         type == BuiltInType.BooleanArray
       );
     }
-    private BuiltInType HandleMultiplyingOperation(string op, BuiltInType t)
+    private BuiltInType HandleMultiplyingOperation(string op, BuiltInType t, Location l)
     {
-      // <multiplying operator> ::= "*" | "/" | "%" | "and" 
+      // <multiplying operator> ::= "*" | "/" | "%" | "and"
+      string errOp = "divide";
       switch (op)
       {
         case "*":
         case "/":
-          if (t != BuiltInType.Integer && t != BuiltInType.Real) return BuiltInType.Error;
+          if (op == "*") errOp = "multiply";
+          if (t != BuiltInType.Integer && t != BuiltInType.Real)
+          {
+            this.io.WriteLine($"Can not {errOp} by {t} [{l}]");
+            return BuiltInType.Error;
+          }
           return t;
         case "%":
-          if (t != BuiltInType.Integer) return BuiltInType.Error;
+          if (t != BuiltInType.Integer)
+          {
+            this.io.WriteLine($"Operator \"%\" expects an Integer on the right-hand-side, instead got {t} [{l}]");
+            return BuiltInType.Error;
+          }
           return t;
         case "and": return t;
         default: return BuiltInType.Error;
       }
     }
-    private BuiltInType HandleAdditionOperation(string op, BuiltInType t)
+    private BuiltInType HandleAdditionOperation(string op, BuiltInType t, Location l)
     {
       switch (op)
       {
         case "-":
-          if (t != BuiltInType.Integer && t != BuiltInType.Real) return BuiltInType.Error;
+          if (t != BuiltInType.Integer && t != BuiltInType.Real)
+          {
+            this.io.WriteLine($"Can not subtract {t} [{l}]");
+            return BuiltInType.Error;
+          }
           return t;
         case "or":
         case "+": return t;
         default: return BuiltInType.Error;
       }
     }
-    private BuiltInType HandleMultiplyingOperation(string op, BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleMultiplyingOperation(string op, BuiltInType t1, BuiltInType t2, Location l)
     {
       switch (op)
       {
-        case "*": return HandleMultiplicationOperation(t1, t2);
-        case "/": return HandleDivisionOperation(t1, t2);
-        case "%": return HandleModuloOperation(t1, t2);
-        case "and": return HandleAndOperation(t1, t2);
+        case "*": return HandleMultiplicationOperation(t1, t2, l);
+        case "/": return HandleDivisionOperation(t1, t2, l);
+        case "%": return HandleModuloOperation(t1, t2, l);
+        case "and": return HandleAndOperation(t1, t2, l);
         default: return BuiltInType.Error;
       }
     }
-    private BuiltInType HandleAdditionOperation(string op, BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleAdditionOperation(string op, BuiltInType t1, BuiltInType t2, Location l)
     {
       switch (op)
       {
-        case "+": return HandlePlusOperation(t1, t2);
-        case "-": return HandleMinusOperation(t1, t2);
-        case "or": return HandleOrOperation(t1, t2);
+        case "+": return HandlePlusOperation(t1, t2, l);
+        case "-": return HandleMinusOperation(t1, t2, l);
+        case "or": return HandleOrOperation(t1, t2, l);
         default: return BuiltInType.Error;
       }
     }
-    private BuiltInType HandleMultiplicationOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleMultiplicationOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 != t2) return HandleDifferentTypeMultiplicationOperation(t1, t2);
+      if (t1 != t2) return HandleDifferentTypeMultiplicationOperation(t1, t2, l);
       if (t1 == BuiltInType.Integer || t1 == BuiltInType.Real) return t1;
+      this.io.WriteLine(new OperationError("*", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleDivisionOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleDivisionOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 != t2) return HandleDifferentTypeDivisionOperation(t1, t2);
+      if (t1 != t2) return HandleDifferentTypeDivisionOperation(t1, t2, l);
       if (t1 == BuiltInType.Integer || t1 == BuiltInType.Real) return t1;
+      this.io.WriteLine(new OperationError("/", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleModuloOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleModuloOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 != t2) return BuiltInType.Error;
+      if (t1 != t2)
+      {
+        this.io.WriteLine(new OperationError("%", t1, t2, l, this.reader).ToString());
+        return BuiltInType.Error;
+      }
       if (t1 == BuiltInType.Integer) return t1;
+      this.io.WriteLine(new OperationError("%", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleAndOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleAndOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 != t2) return HandleDifferentTypeAndOperation(t1, t2);
+      if (t1 != t2) return HandleDifferentTypeAndOperation(t1, t2, l);
       if (t1 == BuiltInType.Boolean) return t1;
+      this.io.WriteLine(new OperationError("and", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandlePlusOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandlePlusOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 != t2) return HandleDifferentTypePlusOperation(t1, t2);
+      if (t1 != t2) return HandleDifferentTypePlusOperation(t1, t2, l);
       if (t1 != BuiltInType.Boolean) return t1;
+      this.io.WriteLine(new OperationError("+", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleMinusOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleMinusOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 != t2) return HandleDifferentTypeMinusOperation(t1, t2);
+      if (t1 != t2) return HandleDifferentTypeMinusOperation(t1, t2, l);
       if (t1 == BuiltInType.Integer || t1 == BuiltInType.Real) return t1;
+      this.io.WriteLine(new OperationError("-", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleOrOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleOrOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 != t2) return HandleDifferentTypeOrOperation(t1, t2);
+      if (t1 != t2) return HandleDifferentTypeOrOperation(t1, t2, l);
       if (t1 == BuiltInType.Boolean) return t1;
+      this.io.WriteLine(new OperationError("or", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleDifferentTypeMultiplicationOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleDifferentTypeMultiplicationOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
       if (t1 == BuiltInType.Integer && t2 == BuiltInType.Real) return BuiltInType.Real;
       if (t1 == BuiltInType.Real && t2 == BuiltInType.Integer) return BuiltInType.Real;
+      this.io.WriteLine(new OperationError("*", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleDifferentTypeDivisionOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleDifferentTypeDivisionOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
       if (t1 == BuiltInType.Integer && t2 == BuiltInType.Real) return BuiltInType.Real;
       if (t1 == BuiltInType.Real && t2 == BuiltInType.Integer) return BuiltInType.Real;
+      this.io.WriteLine(new OperationError("/", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleDifferentTypeAndOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleDifferentTypeAndOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
       if (t1 == BuiltInType.Boolean) return t2; // true and "ok" -> String
+      this.io.WriteLine(new OperationError("and", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleDifferentTypePlusOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleDifferentTypePlusOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
       if (t1 == BuiltInType.String || t2 == BuiltInType.String) return BuiltInType.String; // Turns Type to String
       // TODO: Handle Real + Integer and Integer + Real
+      this.io.WriteLine(new OperationError("+", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
-    private BuiltInType HandleDifferentTypeMinusOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleDifferentTypeMinusOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
+      this.io.WriteLine(new OperationError("-", t1, t2, l, this.reader).ToString());
       // TODO: Handle Integer - Real and Real - Integer
       return BuiltInType.Error;
     }
-    private BuiltInType HandleDifferentTypeOrOperation(BuiltInType t1, BuiltInType t2)
+    private BuiltInType HandleDifferentTypeOrOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
       if (t1 == BuiltInType.Boolean) return t2; // true or "ok" -> String
+      this.io.WriteLine(new OperationError("or", t1, t2, l, this.reader).ToString());
       return BuiltInType.Error;
     }
   }

@@ -1,14 +1,14 @@
 program testprogram;
 
-procedure p(var p1 : integer, p2 : string, p3 : array [proc()] of Boolean);
+procedure p(var p1:integer,p2:string,p3:array[proc()]of Boolean);
 begin
 // <statement>
 // <simple-statement>
 // <assignment-statement>
 // <variable> ":=" <expr>
-var a, b, c : integer;
-var x : array[5] of integer;
-x [3] := 4;
+var a,b,c:integer;
+var x:array[5] of integer;
+x[3]:=4;
 read := "rea boi";
 writeln (x[x.size-1].size);
 x[2] := "yolo"
@@ -25,8 +25,8 @@ begin end;*}
 
 begin 
 var a, b, c : string;
-var d : array[4] of integer;
-writeln((5=5) and 2 + 3);
+var d : array["string"] of integer;
+writeln(165.size);
 end .
 
 {*

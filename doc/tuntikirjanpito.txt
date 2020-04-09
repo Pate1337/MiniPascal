@@ -11,3 +11,5 @@ määritellyt muuttujat sekä samankaltaisudet kieliopin <statement>:issa.
 02.04.2020 | 5h | PrintVisitor saatu valmiiksi.
 04.04.2020 | 2h | Tyyppitarkastuksia aloitettu.
 05.04.2020 | 5h | Tyyppitarkastuksia jatkettu.
+08.04.2020 | 4h | Parempia virheilmoituksia.
+09.04.2020 | 2h | Korjattu bugi automaatissa.

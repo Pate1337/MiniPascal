@@ -8,11 +8,13 @@ namespace Nodes
     public string Name { get; set; }
     public Arguments Arguments { get; set; }
     public bool Size { get; set; }
+    public Location SizeLocation { get; set; }
     public Call()
     {
       this.Size = false;
       this.Style = "Call";
       this.Arguments = null;
+      this.SizeLocation = null;
     }
     void Statement.Visit(Visitor v)
     {

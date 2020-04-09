@@ -9,11 +9,14 @@ namespace Nodes
     public string Sign { get; set; }
     public Term Term { get; set; }
     public List<SimpleExpressionAddition> Additions { get; set; }
+    // Location of possible Sign
+    public Location Location { get; set; }
     public SimpleExpression()
     {
       this.Style = "SimpleExpression";
-      this.Sign = "+";
+      this.Sign = null;
       this.Additions = new List<SimpleExpressionAddition>();
+      this.Location = null;
     }
     public BuiltInType Visit(Visitor v)
     {

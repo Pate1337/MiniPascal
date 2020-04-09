@@ -20,8 +20,9 @@ namespace miniPascalTests
     {
       Assert.AreEqual(v, token.Value);
       Assert.AreEqual(tt, token.Type);
-      Assert.AreEqual(l, token.LineNumber);
-      Assert.AreEqual(c, token.Column);
+      Assert.AreEqual(l, token.Location.Line);
+      Assert.AreEqual(c, token.Location.Column);
+      Assert.AreEqual("Test", token.Location.File);
     }
 
     [Test]

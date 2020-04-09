@@ -7,6 +7,8 @@ namespace Nodes
     public string MultiplyingOperator { get; set; }
     public Factor Factor { get; set; }
     public string Style { get; set; }
+    // Location of MultiplyingOperator
+    public Location Location { get; set; }
     public TermMultiplicative()
     {
       this.Style = "TermMultiplicative";

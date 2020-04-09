@@ -31,6 +31,7 @@ namespace miniPascal
       this.token = this.scanner.NextToken();
       Match(TokenType.Keyword, "program");
       string name = this.token.Value;
+      root.Location = this.token.Location;
       Match(TokenType.Identifier);
       root.Name = name;
       Match(TokenType.SemiColon);
@@ -79,7 +80,7 @@ namespace miniPascal
         NextIs(TokenType.Keyword, "while")
       ) return StructuredStatement();
       else if (NextIs(TokenType.Keyword, "var")) return Declaration();
-      else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected Identifier, PredefinedIdentifier or one of the Keywords: \"return\", \"assert\", \"begin\", \"if\", \"while\" or \"var\".", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected Identifier, PredefinedIdentifier or one of the Keywords: \"return\", \"assert\", \"begin\", \"if\", \"while\" or \"var\".", this.token.Location, this.reader);
     }
     private Statement SimpleStatement()
     {
@@ -92,9 +93,9 @@ namespace miniPascal
         case (TokenType.Keyword):
           if (NextIs(TokenType.Keyword, "return")) return ReturnStatement();
           else if (NextIs(TokenType.Keyword, "assert")) return AssertStatement();
-          else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected Keywords: \"return\" or \"assert\".", this.token.LineNumber, this.token.Column, this.reader);
+          else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected Keywords: \"return\" or \"assert\".", this.token.Location, this.reader);
         default:
-          throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".", this.token.LineNumber, this.token.Column, this.reader);
+          throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".", this.token.Location, this.reader);
       }
     }
     private Statement StatementStartingWithPredefinedIdentifier()
@@ -174,7 +175,7 @@ namespace miniPascal
       if (NextIs(TokenType.Keyword, "begin")) return Block("StructuredStatementBlock");
       else if (NextIs(TokenType.Keyword, "if")) return IfStatement();
       else if (NextIs(TokenType.Keyword, "while")) return WhileStatement();
-      else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected Keywords: \"begin\", \"if\" or \"while\".", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Statement can not start with {this.token.Type} \"{this.token.Value}\".\nExpected Keywords: \"begin\", \"if\" or \"while\".", this.token.Location, this.reader);
     }
     private IfStatement IfStatement()
     {
@@ -271,6 +272,8 @@ namespace miniPascal
         BooleanExpression b = new BooleanExpression();
         b.Left = s;
         b.RelationalOperator = this.token.Value;
+        b.Location = this.token.Location;
+        //b.Location = new Location(this.token.LineNumber, this.token.Column, this.reader.FileName);
         Match(TokenType.RelationalOperator);
         b.Right = SimpleExpression();
         return b;
@@ -284,6 +287,7 @@ namespace miniPascal
       if (NextIs(TokenType.AddingOperator, "+") || NextIs(TokenType.AddingOperator, "-"))
       {
         s.Sign = this.token.Value;
+        s.Location = this.token.Location;
         Match(TokenType.AddingOperator);
       }
       s.Term = Term();
@@ -293,6 +297,8 @@ namespace miniPascal
         {
           SimpleExpressionAddition a = new SimpleExpressionAddition();
           a.AddingOperator = this.token.Value;
+          a.Location = this.token.Location;
+          // a.Location = new Location(this.token.LineNumber, this.token.Column, this.reader.FileName);
           Match(TokenType.AddingOperator);
           a.Term = Term();
           s.Additions.Add(a);
@@ -312,6 +318,7 @@ namespace miniPascal
         {
           TermMultiplicative m = new TermMultiplicative();
           m.MultiplyingOperator = this.token.Value;
+          m.Location = this.token.Location;
           Match(TokenType.MultiplyingOperator);
           m.Factor = Factor();
           t.Multiplicatives.Add(m);
@@ -335,7 +342,7 @@ namespace miniPascal
         ) return FactorsStartingWithLiteral();
       else if (NextIs(TokenType.LeftParenthesis)) return FactorsStartingWithLeftParenthesis();
       else if (NextIs(TokenType.Negation)) return FactorsStartingWithNegation();
-      else throw new SyntaxError($"Expected Identifier, PredefinedIdentifier, Literal, LeftParenthesis or Keyword \"not\".\nInstead got {this.token.Type} \"{this.token.Value}\".", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Expected Identifier, PredefinedIdentifier, Literal, LeftParenthesis or Keyword \"not\".\nInstead got {this.token.Type} \"{this.token.Value}\".", this.token.Location, this.reader);
     }
     private Factor FactorsStartingWithNegation()
     {
@@ -384,7 +391,7 @@ namespace miniPascal
         HandlePossibleSize(lit);
         return lit;
       }
-      else throw new SyntaxError($"Expected IntegerLiteral.", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Expected IntegerLiteral.", this.token.Location, this.reader);
     }
     private Factor FactorsStartingWithIdentifier()
     {
@@ -404,6 +411,7 @@ namespace miniPascal
       if (NextIs(TokenType.Dot))
       {
         f.Size = true;
+        f.SizeLocation = this.token.Location;
         Match(TokenType.Dot);
         Match(TokenType.PredefinedIdentifier, "size");
       }
@@ -542,7 +550,7 @@ namespace miniPascal
         NextIs(TokenType.PredefinedIdentifier, "string")
         ) return SimpleType();
       else if (NextIs(TokenType.Keyword, "array")) return ArrayType();
-      else throw new SyntaxError($"Type can not be {this.token.Type} {this.token.Value}.\nExpected PredefinedIdentifiers: \"Boolean\", \"integer\", \"real\", \"string\" or Keyword \"array\".", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Type can not be {this.token.Type} {this.token.Value}.\nExpected PredefinedIdentifiers: \"Boolean\", \"integer\", \"real\", \"string\" or Keyword \"array\".", this.token.Location, this.reader);
     }
     private SimpleType SimpleType()
     {
@@ -558,6 +566,7 @@ namespace miniPascal
       // <array type> ::= "array" "[" [<integer expr>] "]" "of" <simple type>
       ArrayType a = new ArrayType();
       Match(TokenType.Keyword, "array");
+      a.Location = this.token.Location;
       Match(TokenType.LeftBracket);
       if (!NextIs(TokenType.RightBracket))
       {
@@ -626,7 +635,7 @@ namespace miniPascal
       {
         // TODO: Put the TokenTypes into a string list
         string expectedString = "";
-        throw new SyntaxError($"Expected one of the following: {expectedString}, instead got {this.token.Type} \"{this.token.Value}\".", this.token.LineNumber, this.token.Column, this.reader);
+        throw new SyntaxError($"Expected one of the following: {expectedString}, instead got {this.token.Type} \"{this.token.Value}\".", this.token.Location, this.reader);
       }
     }
     private void Match(TokenType expectedToken, string[] allowed)
@@ -653,7 +662,7 @@ namespace miniPascal
           else if (i < allowed.Length - 1) allowedValues += $"\"{allowed[i]}\", ";
           else allowedValues += $"\"{allowed[i]}\"";
         }
-        throw new SyntaxError($"Expected {expectedToken} {allowedValues}, instead got {this.token.Type} \"{this.token.Value}\"", this.token.LineNumber, this.token.Column, this.reader);
+        throw new SyntaxError($"Expected {expectedToken} {allowedValues}, instead got {this.token.Type} \"{this.token.Value}\"", this.token.Location, this.reader);
       }
     }
     private void Match(TokenType expectedToken, string expectedValue)
@@ -662,18 +671,18 @@ namespace miniPascal
       {
         this.token = this.scanner.NextToken();
       }
-      else throw new SyntaxError($"Expected {expectedToken} \"{expectedValue}\", instead got {this.token.Type} \"{this.token.Value}\"", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Expected {expectedToken} \"{expectedValue}\", instead got {this.token.Type} \"{this.token.Value}\"", this.token.Location, this.reader);
     }
     private void Match(TokenType expected)
     {
       if (expected == this.token.Type) this.token = this.scanner.NextToken();
-      else throw new SyntaxError($"Expected {expected}, instead got {this.token.Type} \"{this.token.Value}\".", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Expected {expected}, instead got {this.token.Type} \"{this.token.Value}\".", this.token.Location, this.reader);
     }
     private void Match(TokenType expected1, TokenType expected2)
     {
       // Used for Identifiers. Either Identifier of PredefinedIdentifier
       if (expected1 == this.token.Type || expected2 == this.token.Type) this.token = this.scanner.NextToken();
-      else throw new SyntaxError($"Expected {expected1} or {expected2}, instead got {this.token.Type}", this.token.LineNumber, this.token.Column, this.reader);
+      else throw new SyntaxError($"Expected {expected1} or {expected2}, instead got {this.token.Type}", this.token.Location, this.reader);
     }
   }
 }

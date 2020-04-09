@@ -27,7 +27,7 @@ namespace Lexer
     }
     public Token NextToken()
     {
-      if (this.buffer.IsEmpty()) return new Token(TokenType.EOF, "", this.lineNumber, this.columnIndex);
+      if (this.buffer.IsEmpty()) return new Token(TokenType.EOF, "", this.lineNumber, this.columnIndex, this.buffer.reader.FileName);
       Token token = new Token(TokenType.WhiteSpace, " ");
       // Skip WhiteSpaces, NewLines, Comments and MultilineComments
       while (
@@ -101,37 +101,59 @@ namespace Lexer
     {
       TokenType prevTokenType = TokenType.Invalid;
       string lexeme;
+      int redo = 0;
+      TokenType lastValid = TokenType.Invalid;
       while (true)
       {
         char currChar = this.buffer.ReadChar();
         prevTokenType = this.automaton.HandleInput(currChar);
         if (this.buffer.IsEmpty()) // Indicates to get the current lexeme and return that
         {
-          lexeme = this.buffer.GetLexeme(false);
-          if (lexeme.Length == 0)
-          {
-            return new Token(TokenType.EOF, "", this.lineNumber, this.columnIndex);
-          }
-          return new Token(prevTokenType, lexeme, this.lineNumber, this.columnIndex - lexeme.Length);
+          lexeme = this.buffer.GetLexeme(0);
+          if (lexeme.Length == 0) return new Token(TokenType.EOF, "", this.lineNumber, this.columnIndex, this.buffer.reader.FileName);
+          return new Token(prevTokenType, lexeme, this.lineNumber, this.columnIndex - lexeme.Length, this.buffer.reader.FileName);
         }
         this.columnIndex++;
         switch (this.automaton.GetAction())
         {
           case AutomatonAction.Move:
+            if (prevTokenType != TokenType.Invalid)
+            {
+              // Success State or Error
+              // How many moves since last success state
+              lastValid = prevTokenType;
+              redo = 1;
+            }
+            else redo++;
             break;
           case AutomatonAction.Recognize:
-            lexeme = this.buffer.GetLexeme(true);
+            // redo = 0;
+            lexeme = this.buffer.GetLexeme(1);
             this.columnIndex--;
-            return new Token(prevTokenType, lexeme, this.lineNumber, this.columnIndex - lexeme.Length);
+            return new Token(prevTokenType, lexeme, this.lineNumber, this.columnIndex - lexeme.Length, this.buffer.reader.FileName);
           case AutomatonAction.Error:
-            // Symbol here is either WhiteSpace, NewLine or Invalid
-            lexeme = this.buffer.GetLexeme(false);
-            Token t = new Token(prevTokenType, lexeme, this.lineNumber, this.columnIndex - lexeme.Length);
+            Token t;
+            // Symbol here is either WhiteSpace, NewLine, Invalid or Error
+            if (prevTokenType == TokenType.WhiteSpace || prevTokenType == TokenType.NewLine || prevTokenType == TokenType.Error)
+            {
+              // No need to redo
+              lexeme = this.buffer.GetLexeme(0);
+              t = new Token(prevTokenType, lexeme, this.lineNumber, this.columnIndex - lexeme.Length, this.buffer.reader.FileName);
+            }
+            else
+            {
+              // Error state set Error action. So this char needs to be redone!
+              redo++;
+              lexeme = this.buffer.GetLexeme(redo);
+              this.columnIndex -= redo;
+              t = new Token(lastValid, lexeme, this.lineNumber, this.columnIndex - lexeme.Length, this.buffer.reader.FileName);
+            }
             if (prevTokenType == TokenType.NewLine)
             {
               this.lineNumber++;
               this.columnIndex = 0;
             }
+            // redo = 0;
             return t;
         }
       }

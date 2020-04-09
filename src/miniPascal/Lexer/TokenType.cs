@@ -26,6 +26,7 @@ namespace Lexer
     Assignment,
     Keyword,
     PredefinedIdentifier,
-    Negation
+    Negation,
+    Error
   }
 }

@@ -288,8 +288,12 @@ namespace Semantic
     public BuiltInType VisitArrayType(ArrayType t)
     {
       EnterNode(t);
-      this.io.Write($"Type: {t.Type}, IntegerExpression:");
-      t.IntegerExpression.Visit(this);
+      this.io.Write($"Type: {t.Type}");
+      if (t.IntegerExpression != null)
+      {
+        this.io.Write(", IntegerExpression:");
+        t.IntegerExpression.Visit(this);
+      }
       ExitNode();
       return BuiltInType.Error;
     }
@@ -302,7 +306,9 @@ namespace Semantic
       public List<SimpleExpressionAddition> Additions { get; set; }
       */
       EnterNode(e);
-      this.io.Write($"Sign: {e.Sign}, Term:");
+      if (e.Sign != null) this.io.Write($"Sign: {e.Sign}, ");
+      if (e.Location != null) this.io.Write($"line: {e.Location.Line}, column: {e.Location.Column}, ");
+      this.io.Write("Term:");
       e.Term.Visit(this);
       if (e.Additions.Count > 0)
       {

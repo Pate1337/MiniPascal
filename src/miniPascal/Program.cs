@@ -19,13 +19,11 @@ namespace miniPascal
                 Parser p = new Parser(io, reader);
                 Nodes.ProgramNode ast = p.Parse();
 
-                //PrintVisitor visitor = new PrintVisitor(io);
-                //visitor.VisitProgram(ast);
+                PrintVisitor visitor = new PrintVisitor(io);
+                visitor.VisitProgram(ast);
 
-                TypeCheckVisitor v = new TypeCheckVisitor();
+                TypeCheckVisitor v = new TypeCheckVisitor(io, reader);
                 v.VisitProgram(ast);
-
-                System.Console.WriteLine(5 == 5 + 2 + 3);
 
                 /*Scanner scanner = new Scanner(reader);
 
@@ -62,7 +60,7 @@ namespace miniPascal
             }
             catch (Error e)
             {
-                io.WriteLine(e.ToString());
+                e.Print(io);
             }
             /*bool fileDefined = false;
             bool printAst = false;

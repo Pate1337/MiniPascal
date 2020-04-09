@@ -1,5 +1,4 @@
 using FileHandler;
-// using System;
 
 namespace Lexer
 {
@@ -8,7 +7,7 @@ namespace Lexer
     private string buffer;
     private int pos;
     private bool empty = false;
-    private Reader reader;
+    public Reader reader { get; set; }
 
     public ScanBuffer(Reader reader)
     {
@@ -36,12 +35,10 @@ namespace Lexer
       this.pos++;
       return this.buffer[index];
     }
-    public string GetLexeme(bool redoLast)
+    public string GetLexeme(int redo)
     {
-      int i = 0;
-      if (redoLast) i = 1;
-      string lexeme = this.buffer.Substring(0, this.pos - i);
-      this.buffer = this.buffer.Substring(this.pos - i);
+      string lexeme = this.buffer.Substring(0, this.pos - redo);
+      this.buffer = this.buffer.Substring(this.pos - redo);
       this.pos = 0;
       return lexeme;
     }
