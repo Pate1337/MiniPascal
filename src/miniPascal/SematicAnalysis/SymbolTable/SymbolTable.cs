@@ -6,21 +6,16 @@ namespace Semantic
   public class SymbolTable
   {
     private Dictionary<string, SymbolTableEntry> Table;
+    public SymbolTable Parent { get; set; }
 
     public SymbolTable()
     {
       this.Table = new Dictionary<string, SymbolTableEntry>();
+      this.Parent = null;
     }
-    public void AddEntry(string id, BuiltInType type)
+    public void AddEntry(string id, SymbolTableEntry e)
     {
-      try
-      {
-        this.Table.Add(id, new SymbolTableEntry(id, type));
-      }
-      catch (ArgumentException)
-      {
-        Console.WriteLine($"Identifier {id} has already been declared!");
-      }
+      this.Table.Add(id, e);
     }
     public SymbolTableEntry GetEntry(string id)
     {
@@ -28,10 +23,17 @@ namespace Semantic
     }
     public void PrintTable()
     {
-      Console.WriteLine("SYMBOLTABLE:");
       foreach (KeyValuePair<string, SymbolTableEntry> pair in this.Table)
       {
-        Console.WriteLine($"<{pair.Key}, ({pair.Value.Identifier}, {pair.Value.Type})>");
+        Console.WriteLine(pair.Value);
+        /*Console.Write($"<{pair.Key}, ({pair.Value.Identifier}, {pair.Value.Type}, {pair.Value.Reference}");
+        if (pair.Value.Parameters != null)
+        {
+          Console.Write(", [ ");
+          foreach (string p in pair.Value.Parameters) Console.Write($"{p},");
+          Console.Write(" ]");
+        }
+        Console.Write(")>\n");*/
       }
     }
   }

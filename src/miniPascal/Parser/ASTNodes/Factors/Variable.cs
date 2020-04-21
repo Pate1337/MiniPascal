@@ -10,6 +10,8 @@ namespace Nodes
     // If IntegerExpression is set, means x[IntegerExpression]
     public Expression IntegerExpression { get; set; }
     public Location SizeLocation { get; set; }
+    // Location of Name
+    public Location Location { get; set; }
     public Variable()
     {
       this.Size = false;

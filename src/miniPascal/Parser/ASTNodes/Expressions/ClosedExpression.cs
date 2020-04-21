@@ -7,8 +7,9 @@ namespace Nodes
     public string Style { get; set; }
     public bool Size { get; set; }
     public Expression Expression { get; set; }
-    // Location of Size
     public Location SizeLocation { get; set; }
+    // Location of LeftParenthesis
+    public Location Location { get; set; }
     public ClosedExpression()
     {
       this.Style = "ClosedExpression";

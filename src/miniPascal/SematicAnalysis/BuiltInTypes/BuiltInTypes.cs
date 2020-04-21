@@ -10,6 +10,7 @@ namespace Semantic
     StringArray,
     BooleanArray,
     RealArray,
-    Error
+    Error,
+    Void // For Procedures
   }
 }

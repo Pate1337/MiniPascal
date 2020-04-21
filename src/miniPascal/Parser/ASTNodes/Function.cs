@@ -10,6 +10,7 @@ namespace Nodes
     public Block Block { get; set; }
     public Type Type { get; set; }
     public List<Parameter> Parameters;
+    public Location Location { get; set; }
     public Function()
     {
       this.Style = "Function";

@@ -8,6 +8,8 @@ namespace Nodes
     public bool Size { get; set; }
     public string Value { get; set; }
     public Location SizeLocation { get; set; }
+    // Location of Value
+    public Location Location { get; set; }
     public IntegerLiteral()
     {
       this.Style = "IntegerLiteral";

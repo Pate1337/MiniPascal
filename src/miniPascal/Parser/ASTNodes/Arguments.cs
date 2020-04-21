@@ -12,9 +12,9 @@ namespace Nodes
       this.Style = "Arguments";
       this.Expressions = new List<Expression>();
     }
-    public void Visit(Visitor v)
+    public List<BuiltInType> Visit(Visitor v)
     {
-      v.VisitArguments(this);
+      return v.VisitArguments(this);
     }
   }
 }

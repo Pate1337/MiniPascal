@@ -13,3 +13,8 @@ määritellyt muuttujat sekä samankaltaisudet kieliopin <statement>:issa.
 05.04.2020 | 5h | Tyyppitarkastuksia jatkettu.
 08.04.2020 | 4h | Parempia virheilmoituksia.
 09.04.2020 | 2h | Korjattu bugi automaatissa.
+15.04.2020 | 6h | Semanttista analyysia toteutettu. Symbolitaulun toteutus ja siihen
+liittyvät tyyppitarkastukset.
+20.04.2020 | 6h | Symbolitaulu saatu valmiiksi. Tyyppitarkastukset return:in suhteen
+aiheuttavat hankaluuksia. Erityisesti kaikkien eri haarojen return.
+21.04.2020 | 1h | Tyyppitarkastuksia, korjauksia symbolitauluun.

@@ -8,6 +8,8 @@ namespace Nodes
     public bool Size { get; set; }
     public Factor Factor { get; set; }
     public Location SizeLocation { get; set; }
+    // Location of "not"
+    public Location Location { get; set; }
     public NegationFactor()
     {
       this.Style = "NegationFactor";

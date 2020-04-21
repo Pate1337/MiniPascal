@@ -1,6 +1,7 @@
 program testprogram;
 
-procedure p(var p1:integer,p2:string,p3:array[proc()]of Boolean);
+{*
+procedure p(var p1:array["string"] of string,p2:string);
 begin
 // <statement>
 // <simple-statement>
@@ -17,16 +18,39 @@ end;
 
 procedure f ();
 begin
-read (x);
+read (a, b, c);
 end;
-
+*}
 {*procedure p2(var a : integer, b : string, var c : integer);
 begin end;*}
 
+procedure p(p1: string, p2: integer);
+begin
+var p1 : integer;
+var testprogram : string;
+end;
+
+function d(p1: string, p2: integer) : array[2] of integer;
+begin
+var p2 : integer;
+writeln ("moi");
+if p2 = 4 then
+    begin
+    writeln ("p2 = 4");
+    end
+else
+    begin
+    var p1 : string;
+    writeln ("p2 != 4");
+    end
+end;
+
 begin 
 var a, b, c : string;
-var d : array["string"] of integer;
-writeln(165.size);
+var a, e : integer;
+var d : array[3 * 2] of string;
+var p : integer;
+writeln(p());
 end .
 
 {*

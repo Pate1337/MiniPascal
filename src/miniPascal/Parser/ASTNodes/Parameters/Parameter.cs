@@ -6,6 +6,6 @@ namespace Nodes
   {
     string Name { get; set; }
     Type Type { get; set; }
-    void Visit(Visitor v);
+    SymbolTableEntry Visit(Visitor v);
   }
 }

@@ -9,6 +9,8 @@ namespace Nodes
     public string Name { get; set; }
     public Block Block { get; set; }
     public List<Parameter> Parameters { get; set; }
+    // Location of Name
+    public Location Location { get; set; }
     public Procedure()
     {
       this.Style = "Procedure";

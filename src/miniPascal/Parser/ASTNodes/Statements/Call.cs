@@ -9,11 +9,13 @@ namespace Nodes
     public Arguments Arguments { get; set; }
     public bool Size { get; set; }
     public Location SizeLocation { get; set; }
+    public Location Location { get; set; }
     public Call()
     {
       this.Size = false;
       this.Style = "Call";
-      this.Arguments = null;
+      // this.Arguments = null;
+      this.Arguments = new Arguments();
       this.SizeLocation = null;
     }
     void Statement.Visit(Visitor v)

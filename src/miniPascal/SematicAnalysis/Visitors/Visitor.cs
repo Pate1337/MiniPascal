@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Nodes;
 
 namespace Semantic
@@ -7,8 +8,8 @@ namespace Semantic
     void VisitProgram(ProgramNode p);
     void VisitProcedure(Procedure p);
     void VisitFunction(Function f);
-    void VisitReferenceParameter(ReferenceParameter rp);
-    void VisitValueParameter(ValueParameter vp);
+    SymbolTableEntry VisitReferenceParameter(ReferenceParameter rp);
+    SymbolTableEntry VisitValueParameter(ValueParameter vp);
     BuiltInType VisitArrayType(ArrayType t);
     BuiltInType VisitSimpleType(SimpleType t);
     BuiltInType VisitSimpleExpression(SimpleExpression e);
@@ -23,8 +24,8 @@ namespace Semantic
     BuiltInType VisitNegationFactor(NegationFactor f);
     BuiltInType VisitVariable(Variable v);
     BuiltInType VisitCall(Call c);
-    void VisitArguments(Arguments a);
-    void VisitBlock(Block b);
+    List<BuiltInType> VisitArguments(Arguments a);
+    BuiltInType VisitBlock(Block b, BuiltInType expectedType);
     void VisitAssertStatement(AssertStatement s);
     void VisitAssignmentStatement(AssignmentStatement s);
     void VisitDeclaration(Declaration s);

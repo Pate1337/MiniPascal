@@ -8,6 +8,7 @@ namespace Nodes
     public Expression BooleanExpression { get; set; }
     public Statement ThenStatement { get; set; }
     public Statement ElseStatement { get; set; }
+    public Location Location { get; set; }
     public IfStatement()
     {
       this.Style = "IfStatement";

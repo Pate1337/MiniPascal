@@ -18,7 +18,14 @@ namespace Nodes
     }
     public void Visit(Visitor v)
     {
-      v.VisitBlock(this);
+      v.VisitBlock(this, BuiltInType.Error);
+    }
+    /*
+    * This is used by TypeCheckVisitor.
+    */
+    public BuiltInType Visit(Visitor v, BuiltInType expectedType)
+    {
+      return v.VisitBlock(this, expectedType);
     }
   }
 }

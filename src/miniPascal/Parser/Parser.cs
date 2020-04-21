@@ -152,6 +152,7 @@ namespace miniPascal
       {
         if (NextIs(TokenType.Comma))
         {
+          Match(TokenType.Comma);
           r.Variables.Add(Variable());
         }
         else break;
@@ -182,12 +183,15 @@ namespace miniPascal
       // <if statement> ::= "if" <Boolean expr> "then" <statement> |
       //                "if" <Boolean expr> "then" <statement> "else" <statement>
       IfStatement i = new IfStatement();
+      i.Location = this.token.Location;
       Match(TokenType.Keyword, "if");
       i.BooleanExpression = Expression();
       Match(TokenType.Keyword, "then");
       i.ThenStatement = Statement();
       if (NextIs(TokenType.Keyword, "else"))
       {
+        this.io.WriteLine("Newxt is else");
+        Match(TokenType.Keyword, "else");
         i.ElseStatement = Statement();
       }
       return i;
@@ -348,6 +352,7 @@ namespace miniPascal
     {
       // "not" <factor> | <factor> "." "size"
       NegationFactor f = new NegationFactor();
+      f.Location = this.token.Location;
       Match(TokenType.Negation);
       f.Factor = Factor();
       HandlePossibleSize(f);
@@ -357,6 +362,7 @@ namespace miniPascal
     {
       // "(" expr ")" | <factor> "." "size"
       ClosedExpression f = new ClosedExpression();
+      f.Location = this.token.Location;
       Match(TokenType.LeftParenthesis);
       f.Expression = Expression();
       Match(TokenType.RightParenthesis);
@@ -371,6 +377,7 @@ namespace miniPascal
         IntegerLiteral lit = new IntegerLiteral();
         // lit.Value = System.Int32.Parse(this.token.Value);
         lit.Value = this.token.Value;
+        lit.Location = this.token.Location;
         Match(TokenType.IntegerLiteral);
         HandlePossibleSize(lit);
         return lit;
@@ -379,6 +386,7 @@ namespace miniPascal
       {
         StringLiteral lit = new StringLiteral();
         lit.Value = this.token.Value;
+        lit.Location = this.token.Location;
         Match(TokenType.StringLiteral);
         HandlePossibleSize(lit);
         return lit;
@@ -387,6 +395,7 @@ namespace miniPascal
       {
         RealLiteral lit = new RealLiteral();
         lit.Value = this.token.Value;
+        lit.Location = this.token.Location;
         Match(TokenType.RealLiteral);
         HandlePossibleSize(lit);
         return lit;
@@ -398,11 +407,13 @@ namespace miniPascal
       // <call> | <variable> | <factor> "." "size"
       Factor f;
       string id = this.token.Value;
+      Location loc = this.token.Location;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       // <call> [ "." "size" ]
       if (NextIs(TokenType.LeftParenthesis)) f = CallWithHandledIdentifier(id);
       // <variable> | <factor> "." "size"
       else f = VariableWithHandledIdentifier(id);
+      f.Location = loc;
       HandlePossibleSize(f);
       return f;
     }
@@ -420,18 +431,22 @@ namespace miniPascal
     {
       // <var-declaration> ::= "var" <id> { "," <id> } ":" <type> 
       Match(TokenType.Keyword, "var");
-      string id = this.token.Value;
+      // string id = this.token.Value;
+      Token t = this.token;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       Declaration d = new Declaration();
-      d.Identifiers.Add(id);
+      // d.Identifiers.Add(id);
+      d.Identifiers.Add(t);
       while (true)
       {
         if (NextIs(TokenType.Comma))
         {
           Match(TokenType.Comma);
-          id = this.token.Value;
+          // id = this.token.Value;
+          t = this.token;
           Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
-          d.Identifiers.Add(id);
+          // d.Identifiers.Add(id);
+          d.Identifiers.Add(t);
         }
         else break;
       }
@@ -461,10 +476,11 @@ namespace miniPascal
     private Procedure Procedure()
     {
       Match(TokenType.Keyword, "procedure");
-      string name = this.token.Value;
+      Token t = this.token;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       Procedure p = new Procedure();
-      p.Name = name;
+      p.Name = t.Value;
+      p.Location = t.Location;
       Match(TokenType.LeftParenthesis);
       p.Parameters = Parameters();
       Match(TokenType.RightParenthesis);
@@ -476,10 +492,11 @@ namespace miniPascal
     private Function Function()
     {
       Match(TokenType.Keyword, "function");
-      string name = this.token.Value;
+      Token t = this.token;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       Function f = new Function();
-      f.Name = name;
+      f.Name = t.Value;
+      f.Location = t.Location;
       Match(TokenType.LeftParenthesis);
       f.Parameters = Parameters();
       Match(TokenType.RightParenthesis);
@@ -520,24 +537,28 @@ namespace miniPascal
     private ReferenceParameter ReferenceParameter()
     {
       Match(TokenType.Keyword, "var");
-      string name = this.token.Value;
+      Token t = this.token;
+      // string name = this.token.Value;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       Match(TokenType.Colon);
       Type type = Type();
       ReferenceParameter p = new ReferenceParameter();
-      p.Name = name;
+      p.Name = t.Value;
       p.Type = type;
+      p.Location = t.Location;
       return p;
     }
     private ValueParameter ValueParameter()
     {
-      string name = this.token.Value;
+      // string name = this.token.Value;
+      Token t = this.token;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       Match(TokenType.Colon);
       Type type = Type();
       ValueParameter p = new ValueParameter();
-      p.Name = name;
+      p.Name = t.Value;
       p.Type = type;
+      p.Location = t.Location;
       return p;
     }
     private Type Type()

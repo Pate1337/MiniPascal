@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using IO;
 using Nodes;
 
@@ -101,7 +102,7 @@ namespace Semantic
       f.Block.Visit(this);
       ExitNode();
     }
-    public void VisitBlock(Block b)
+    public BuiltInType VisitBlock(Block b, BuiltInType expectedType)
     {
       /*
       public string Style { get; set; }
@@ -115,6 +116,7 @@ namespace Semantic
         this.io.Write("]");
       }
       ExitNode();
+      return expectedType;
     }
     public BuiltInType VisitCall(Call c)
     {
@@ -170,7 +172,14 @@ namespace Semantic
       */
       EnterNode(s);
       this.io.Write("Identifiers: [");
-      foreach (string id in s.Identifiers) this.io.Write($"{id}, ");
+      // foreach (string id in s.Identifiers) this.io.Write($"{id}, ");
+      int i = 1;
+      foreach (Lexer.Token t in s.Identifiers)
+      {
+        this.io.Write($"{t.Value}");
+        if (i < s.Identifiers.Count) this.io.Write(", ");
+        i++;
+      }
       this.io.Write("], Type:");
       s.Type.Visit(this);
       ExitNode();
@@ -249,7 +258,7 @@ namespace Semantic
       }
       ExitNode();
     }
-    public void VisitArguments(Arguments a)
+    public List<BuiltInType> VisitArguments(Arguments a)
     {
       /*
       public string Style { get; set; }
@@ -263,20 +272,23 @@ namespace Semantic
         this.io.Write("]");
       }
       ExitNode();
+      return new List<BuiltInType>();
     }
-    public void VisitReferenceParameter(ReferenceParameter rp)
+    public SymbolTableEntry VisitReferenceParameter(ReferenceParameter rp)
     {
       EnterNode(rp);
       this.io.Write($"Name: {rp.Name}, Type:");
       rp.Type.Visit(this);
       ExitNode();
+      return new SymbolTableEntry("", BuiltInType.Error);
     }
-    public void VisitValueParameter(ValueParameter vp)
+    public SymbolTableEntry VisitValueParameter(ValueParameter vp)
     {
       EnterNode(vp);
       this.io.Write($"Name: {vp.Name}, Type:");
       vp.Type.Visit(this);
       ExitNode();
+      return new SymbolTableEntry("", BuiltInType.Error);
     }
     public BuiltInType VisitSimpleType(SimpleType t)
     {

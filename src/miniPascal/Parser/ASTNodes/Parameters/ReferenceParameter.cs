@@ -7,13 +7,14 @@ namespace Nodes
     public string Style { get; set; }
     public string Name { get; set; }
     public Type Type { get; set; }
+    public Location Location { get; set; }
     public ReferenceParameter()
     {
       this.Style = "ReferenceParameter";
     }
-    public void Visit(Visitor v)
+    public SymbolTableEntry Visit(Visitor v)
     {
-      v.VisitReferenceParameter(this);
+      return v.VisitReferenceParameter(this);
     }
   }
 }
