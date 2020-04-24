@@ -7,6 +7,7 @@ namespace Nodes
   {
     public string Style { get; set; }
     public List<Variable> Variables { get; set; }
+    public Location Location { get; set; }
     public ReadStatement()
     {
       this.Style = "ReadStatement";

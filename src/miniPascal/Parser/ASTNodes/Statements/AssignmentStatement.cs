@@ -7,6 +7,7 @@ namespace Nodes
     public string Style { get; set; }
     public Variable Variable { get; set; }
     public Expression Expression { get; set; }
+    public Location Location { get; set; }
     public AssignmentStatement()
     {
       this.Style = "AssignmentStatement";

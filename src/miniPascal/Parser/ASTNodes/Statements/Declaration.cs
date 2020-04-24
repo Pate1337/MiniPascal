@@ -10,6 +10,7 @@ namespace Nodes
     // public List<string> Identifiers { get; set; }
     public List<Token> Identifiers { get; set; }
     public Type Type { get; set; }
+    public Location Location { get; set; }
     public Declaration()
     {
       this.Style = "Declaration";

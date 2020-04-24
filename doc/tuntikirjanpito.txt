@@ -18,3 +18,8 @@ liittyvät tyyppitarkastukset.
 20.04.2020 | 6h | Symbolitaulu saatu valmiiksi. Tyyppitarkastukset return:in suhteen
 aiheuttavat hankaluuksia. Erityisesti kaikkien eri haarojen return.
 21.04.2020 | 1h | Tyyppitarkastuksia, korjauksia symbolitauluun.
+22.04.2020 | 6h | Returnit saatu kuntoon. Oikeat virheilmoitukset tyypin ollessa väärä 
+ja jos kaikki haarat eivät palauta arvoa.
+24.04.2020 | 4h | TypeCheckVisitor saatu valmiiksi. Tällä hetkellä kieli ei salli uusia 
+muuttujan alustuksia inner scopeissa, jos sama muuttuja on alustettu ylemmällä tasolla.
+Case-insensitivity lisätty.

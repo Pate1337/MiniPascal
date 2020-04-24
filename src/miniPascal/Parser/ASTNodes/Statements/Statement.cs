@@ -6,5 +6,6 @@ namespace Nodes
   {
     string Style { get; set; }
     void Visit(Visitor v);
+    Location Location { get; set; }
   }
 }

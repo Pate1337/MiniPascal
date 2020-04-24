@@ -43,8 +43,9 @@ namespace miniPascal
     private Block Block(string style)
     {
       // <block> ::= "begin" <statement> { ";" <statement> } [ ";" ] "end" 
-      Match(TokenType.Keyword, "begin");
       Block block = new Block(style);
+      block.Location = this.token.Location;
+      Match(TokenType.Keyword, "begin");
       block.AddStatement(Statement());
       Statements(block);
       if (NextIs(TokenType.SemiColon)) Match(TokenType.SemiColon);
@@ -105,22 +106,23 @@ namespace miniPascal
       // ALSO
       // <read statement> ::= "read" "(" <variable> { "," <variable> } ")"
       // <write statement> ::= "writeln" "(" <arguments> ")"
-      string id = this.token.Value;
+      Token token = this.token;
       Match(TokenType.PredefinedIdentifier);
       if (NextIs(TokenType.LeftParenthesis))
       {
         // <call> ::= <id> "(" <arguments> ")"
         // <read statement> ::= "read" "(" <variable> { "," <variable> } ")"
         // <write statement> ::= "writeln" "(" <arguments> ")"
-        if (id == "writeln") return WriteStatement();
-        else if (id == "read") return ReadStatement();
-        else return CallWithHandledIdentifier(id);
+        if (token.Value == "writeln") return WriteStatement(token);
+        else if (token.Value == "read") return ReadStatement(token);
+        else return CallWithHandledIdentifier(token);
       }
       else
       {
         // <assignment statement> ::= <variable> ":=" <expr>
         AssignmentStatement a = new AssignmentStatement();
-        a.Variable = VariableWithHandledIdentifier(id);
+        a.Location = token.Location;
+        a.Variable = VariableWithHandledIdentifier(token);
         Match(TokenType.Assignment);
         a.Expression = Expression();
         return a;
@@ -130,23 +132,25 @@ namespace miniPascal
     {
       // <call> ::= <id> "(" <arguments> ")"
       // <assignment statement> ::= <variable> ":=" <expr>
-      string id = this.token.Value;
+      Token token = this.token;
       // Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       Match(TokenType.Identifier);
-      if (NextIs(TokenType.LeftParenthesis)) return CallWithHandledIdentifier(id);
+      if (NextIs(TokenType.LeftParenthesis)) return CallWithHandledIdentifier(token);
       // AssignmentStatement
       AssignmentStatement a = new AssignmentStatement();
-      a.Variable = VariableWithHandledIdentifier(id);
+      a.Variable = VariableWithHandledIdentifier(token);
+      a.Location = token.Location;
       Match(TokenType.Assignment);
       a.Expression = Expression();
       return a;
     }
-    private ReadStatement ReadStatement()
+    private ReadStatement ReadStatement(Token token)
     {
       // <read statement> ::= "read" "(" <variable> { "," <variable> } ")" 
       // Match(TokenType.PredefinedIdentifier, "read");
       Match(TokenType.LeftParenthesis);
       ReadStatement r = new ReadStatement();
+      r.Location = token.Location;
       r.Variables.Add(Variable());
       while (true)
       {
@@ -160,12 +164,13 @@ namespace miniPascal
       Match(TokenType.RightParenthesis);
       return r;
     }
-    private WriteStatement WriteStatement()
+    private WriteStatement WriteStatement(Token token)
     {
       // <write statement> ::= "writeln" "(" <arguments> ")"
       // Match(TokenType.PredefinedIdentifier, "writeln");
       Match(TokenType.LeftParenthesis);
       WriteStatement w = new WriteStatement();
+      w.Location = token.Location;
       if (!NextIs(TokenType.RightParenthesis)) w.Arguments = Arguments();
       Match(TokenType.RightParenthesis);
       return w;
@@ -190,7 +195,6 @@ namespace miniPascal
       i.ThenStatement = Statement();
       if (NextIs(TokenType.Keyword, "else"))
       {
-        this.io.WriteLine("Newxt is else");
         Match(TokenType.Keyword, "else");
         i.ElseStatement = Statement();
       }
@@ -200,6 +204,7 @@ namespace miniPascal
     {
       // <while statement> ::= "while" <Boolean expr> "do" <statement> 
       WhileStatement w = new WhileStatement();
+      w.Location = this.token.Location;
       Match(TokenType.Keyword, "while");
       w.BooleanExpression = Expression();
       Match(TokenType.Keyword, "do");
@@ -210,6 +215,7 @@ namespace miniPascal
     {
       // <return statement> ::= "return" [ expr ]
       ReturnStatement r = new ReturnStatement();
+      r.Location = this.token.Location;
       Match(TokenType.Keyword, "return");
       if (
         NextIs(TokenType.SemiColon) ||
@@ -223,6 +229,7 @@ namespace miniPascal
     {
       // <assert statement> ::= "assert" "(" <Boolean expr> ")"
       AssertStatement a = new AssertStatement();
+      a.Location = this.token.Location;
       Match(TokenType.Keyword, "assert");
       Match(TokenType.LeftParenthesis);
       a.BooleanExpression = Expression();
@@ -249,15 +256,16 @@ namespace miniPascal
     private Variable Variable()
     {
       // <variable> ::= <variable id> [ "[" <integer expr> "]" ]
-      string name = this.token.Value;
+      Token token = this.token;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
-      return VariableWithHandledIdentifier(name);
+      return VariableWithHandledIdentifier(token);
     }
-    private Variable VariableWithHandledIdentifier(string name)
+    private Variable VariableWithHandledIdentifier(Token token)
     {
       // [ "[" <integer expr> "]" ]
       Variable v = new Variable();
-      v.Name = name;
+      v.Location = token.Location;
+      v.Name = token.Value;
       if (NextIs(TokenType.LeftBracket))
       {
         Match(TokenType.LeftBracket);
@@ -375,7 +383,6 @@ namespace miniPascal
       if (NextIs(TokenType.IntegerLiteral))
       {
         IntegerLiteral lit = new IntegerLiteral();
-        // lit.Value = System.Int32.Parse(this.token.Value);
         lit.Value = this.token.Value;
         lit.Location = this.token.Location;
         Match(TokenType.IntegerLiteral);
@@ -406,14 +413,13 @@ namespace miniPascal
     {
       // <call> | <variable> | <factor> "." "size"
       Factor f;
-      string id = this.token.Value;
-      Location loc = this.token.Location;
+      Token token = this.token;
       Match(TokenType.Identifier, TokenType.PredefinedIdentifier);
       // <call> [ "." "size" ]
-      if (NextIs(TokenType.LeftParenthesis)) f = CallWithHandledIdentifier(id);
+      if (NextIs(TokenType.LeftParenthesis)) f = CallWithHandledIdentifier(token);
       // <variable> | <factor> "." "size"
-      else f = VariableWithHandledIdentifier(id);
-      f.Location = loc;
+      else f = VariableWithHandledIdentifier(token);
+      f.Location = token.Location;
       HandlePossibleSize(f);
       return f;
     }
@@ -455,10 +461,11 @@ namespace miniPascal
       d.Type = type;
       return d;
     }
-    private Call CallWithHandledIdentifier(string id)
+    private Call CallWithHandledIdentifier(Token token)
     {
       Call call = new Call();
-      call.Name = id;
+      call.Name = token.Value;
+      call.Location = token.Location;
       Match(TokenType.LeftParenthesis);
       if (!NextIs(TokenType.RightParenthesis)) call.Arguments = Arguments();
       Match(TokenType.RightParenthesis);
@@ -565,17 +572,17 @@ namespace miniPascal
     {
       // <type> ::= <simple type> | <array type> 
       if (
-        NextIs(TokenType.PredefinedIdentifier, "Boolean") ||
+        NextIs(TokenType.PredefinedIdentifier, "boolean") ||
         NextIs(TokenType.PredefinedIdentifier, "integer") ||
         NextIs(TokenType.PredefinedIdentifier, "real") ||
         NextIs(TokenType.PredefinedIdentifier, "string")
         ) return SimpleType();
       else if (NextIs(TokenType.Keyword, "array")) return ArrayType();
-      else throw new SyntaxError($"Type can not be {this.token.Type} {this.token.Value}.\nExpected PredefinedIdentifiers: \"Boolean\", \"integer\", \"real\", \"string\" or Keyword \"array\".", this.token.Location, this.reader);
+      else throw new SyntaxError($"Type can not be {this.token.Type} {this.token.Value}.\nExpected PredefinedIdentifiers: \"boolean\", \"integer\", \"real\", \"string\" or Keyword \"array\".", this.token.Location, this.reader);
     }
     private SimpleType SimpleType()
     {
-      string[] allowed = { "Boolean", "integer", "real", "string" };
+      string[] allowed = { "boolean", "integer", "real", "string" };
       string t = this.token.Value;
       Match(TokenType.PredefinedIdentifier, allowed);
       SimpleType type = new SimpleType();
@@ -605,7 +612,7 @@ namespace miniPascal
       {
         case ("string"): return BuiltInType.String;
         case ("integer"): return BuiltInType.Integer;
-        case ("Boolean"): return BuiltInType.Boolean;
+        case ("boolean"): return BuiltInType.Boolean;
         case ("Real"): return BuiltInType.Real;
         default: return BuiltInType.Error;
       }

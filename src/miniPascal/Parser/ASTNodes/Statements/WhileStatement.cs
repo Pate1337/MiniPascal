@@ -7,6 +7,7 @@ namespace Nodes
     public string Style { get; set; }
     public Expression BooleanExpression { get; set; }
     public Statement Statement { get; set; }
+    public Location Location { get; set; }
     public WhileStatement()
     {
       this.Style = "WhileStatement";

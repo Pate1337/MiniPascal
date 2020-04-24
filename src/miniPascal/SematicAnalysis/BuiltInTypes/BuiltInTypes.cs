@@ -11,6 +11,7 @@ namespace Semantic
     BooleanArray,
     RealArray,
     Error,
-    Void // For Procedures
+    Void, // For Procedures
+    None // Indicates that MainBlock can not return
   }
 }

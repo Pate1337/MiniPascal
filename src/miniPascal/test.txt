@@ -1,4 +1,4 @@
-program testprogram;
+pROGRAM TESTprogram;
 
 {*
 procedure p(var p1:array["string"] of string,p2:string);
@@ -24,33 +24,58 @@ end;
 {*procedure p2(var a : integer, b : string, var c : integer);
 begin end;*}
 
-procedure p(p1: string, p2: integer);
+procedure p(var p1: string, p2: integer);
 begin
 var p1 : integer;
-var testprogram : string;
+read := "4";
+var testpROGRAM : string;
+p1 := -6;
+while p2 < 4 do
+    begin
+        writeln("moi");
+        return;
+    end
 end;
 
-function d(p1: string, p2: integer) : array[2] of integer;
+function d(p1: string, p2: integer) : string;
 begin
 var p2 : integer;
 writeln ("moi");
-if p2 = 4 then
-    begin
-    writeln ("p2 = 4");
-    end
-else
-    begin
-    var p1 : string;
-    writeln ("p2 != 4");
-    end
+while p2 < 4 do
+begin
+    if p2 = 4 then
+        begin
+        writeln ("p2 = 4");
+        // return 4;
+        end
+    else
+        begin
+        var p1 : string;
+        writeln ("p2 != 4");
+        if p2 = 2 then
+            begin
+            writeln("moi");
+            return 1;
+            end
+            else
+            begin
+            writeln("joo");
+            return 2;
+            end;
+        end;
+end;
+writeln("joo");
 end;
 
 begin 
 var a, b, c : string;
 var a, e : integer;
+var r : Boolean;
+read (a, r, p, i);
 var d : array[3 * 2] of string;
 var p : integer;
-writeln(p());
+writeln(p(a, 2));
+return "vittu";
 end .
 
 {*

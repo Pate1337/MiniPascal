@@ -800,13 +800,13 @@ namespace miniPascalTests
     public void RecognizesPredefinedIdentifiers()
     {
       string[] lines = {
-        "Boolean", "false", "integer", "read", "real", "size", "string", "true",
+        "boolean", "false", "integer", "read", "real", "size", "string", "true",
         "writeln"
       };
       Scanner scanner = InitScanner(lines);
 
       Token token = scanner.NextToken();
-      Matches("Boolean", TokenType.PredefinedIdentifier, 1, 0, token);
+      Matches("boolean", TokenType.PredefinedIdentifier, 1, 0, token);
 
       token = scanner.NextToken();
       Matches("false", TokenType.PredefinedIdentifier, 2, 0, token);

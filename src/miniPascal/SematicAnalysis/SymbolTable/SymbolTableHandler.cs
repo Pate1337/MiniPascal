@@ -25,31 +25,38 @@ namespace Semantic
     }
     public void AddNewBlock()
     {
-      this.io.WriteLine("Before adding a block:");
-      PrintTable();
+      // this.io.WriteLine("Before adding a block:");
+      // PrintTable();
       SymbolTable block = new SymbolTable();
       block.Parent = this.CurrentBlock;
       this.CurrentBlock = block;
-      this.io.WriteLine("After adding a block:");
-      PrintTable();
+      // this.io.WriteLine("After adding a block:");
+      // PrintTable();
     }
     public void RemoveCurrentBlock()
     {
-      this.io.WriteLine("Before removing block:");
-      PrintTable();
+      // this.io.WriteLine("Before removing block:");
+      // PrintTable();
       this.CurrentBlock = this.CurrentBlock.Parent;
-      this.io.WriteLine("After removing block:");
-      PrintTable();
+      // this.io.WriteLine("After removing block:");
+      // PrintTable();
     }
     public void AddEntry(string id, SymbolTableEntry e, Location loc)
     {
       // Need to check if entry by id is a procedure/function or parameter of this block
       // Can not declare those again
-      if (IsParameter(id)) new Error($"Variable {id} has already been declared. Can not re-declare a parameter.", loc, this.reader).Print(this.io);
-      else if (IsProcedureOrFunction(id)) new Error($"Variable {id} has already been declared. Can not re-declare a procedure or function.", loc, this.reader).Print(this.io);
-      else if (IsProgramName(id)) new Error($"Variable {id} has already been declared. Can not re-declare the name of the program.", loc, this.reader).Print(this.io);
+      SymbolTableEntry existingEntry = FindEntry(id);
+      if (existingEntry.Type != BuiltInType.Error)
+      {
+        // Was found
+        if (IsParameter(existingEntry)) new Error($"Variable {id} has already been declared. Can not re-declare a parameter.", loc, this.reader).Print(this.io);
+        else if (IsProcedureOrFunction(existingEntry)) new Error($"Variable {id} has already been declared. Can not re-declare a procedure or function.", loc, this.reader).Print(this.io);
+        else if (IsProgramName(existingEntry)) new Error($"Variable {id} has already been declared. Can not re-declare the name of the program.", loc, this.reader).Print(this.io);
+        else new Error($"Variable {id} has already been declared!", loc, this.reader).Print(this.io);
+      }
       else
       {
+        // try - catch even tho redundant. (already checked that entry does not exist)
         try
         {
           this.CurrentBlock.AddEntry(id, e);
@@ -73,51 +80,42 @@ namespace Semantic
     {
       return FindEntry(id);
     }
-    private bool IsParameter(string id)
+    /*
+    * Type checking is done in TypeCheckVisitor.
+    */
+    public void Assign(string id, Location loc)
     {
-      // Parameters are located in Parent block.
-      // SymbolTable block = this.CurrentBlock.Parent;
-      // SymbolTableEntry e = FindEntryFromBlock(id, block);
       SymbolTableEntry e = FindEntry(id);
       if (e.Type != BuiltInType.Error)
       {
-        // Was found. Check if parameter.
-        if (e.ParameterType != null) return true;
+        if (IsParameter(e))
+        {
+          if (!IsReferenceParameter(e)) new Error($"Can not assign a value to variable {id}, because it is a parameter.", loc, this.reader).Print(this.io);
+        }
+        else if (IsProcedureOrFunction(e)) new Error($"Can not assign a value to variable {id}, because it is a procedure or a function.", loc, this.reader).Print(this.io);
+        else if (IsProgramName(e)) new Error($"Can not assign a value to variable {id}, because it is the program's name.", loc, this.reader).Print(this.io);
       }
+      else new Error($"Can not assign a value to variable {id}, because it has not been declared.", loc, this.reader).Print(this.io);
+    }
+    private bool IsReferenceParameter(SymbolTableEntry e)
+    {
+      if (e.ParameterType == "ref") return true;
       return false;
     }
-    private bool IsProcedureOrFunction(string id)
+    private bool IsParameter(SymbolTableEntry e)
     {
-      // Procedures and functions are declared in the global scope.
-      SymbolTable block = GetGlobalScope();
-      SymbolTableEntry e = FindEntryFromBlock(id, block);
-      if (e.Type != BuiltInType.Error)
-      {
-        // If entry has Parameters, is a function or procedure.
-        if (e.Parameters != null) return true;
-      }
+      if (e.ParameterType != null) return true;
       return false;
     }
-    private bool IsProgramName(string id)
+    private bool IsProcedureOrFunction(SymbolTableEntry e)
     {
-      // Program name is declared in the global scope.
-      SymbolTable block = GetGlobalScope();
-      SymbolTableEntry e = FindEntryFromBlock(id, block);
-      if (e.Type != BuiltInType.Error)
-      {
-        // If entry has no parameters and Type is Void => Program name
-        if (e.Parameters == null && e.Type == BuiltInType.Void) return true;
-      }
+      if (e.Parameters != null) return true;
       return false;
     }
-    private SymbolTable GetGlobalScope()
+    private bool IsProgramName(SymbolTableEntry e)
     {
-      SymbolTable block = this.CurrentBlock;
-      while (block.Parent != null)
-      {
-        block = block.Parent;
-      }
-      return block;
+      if (e.Parameters == null && e.Type == BuiltInType.Void) return true;
+      return false;
     }
     private SymbolTableEntry FindEntryFromBlock(string id, SymbolTable block)
     {
@@ -147,20 +145,6 @@ namespace Semantic
       }
       // Was not found
       return e;
-      /*while (block != null)
-      {
-        try
-        {
-          return block.GetEntry(id);
-        }
-        catch (KeyNotFoundException)
-        {
-          // Not found in the current block. Find from the Parent.
-          block = block.Parent;
-        }
-      }
-      // Was not found in any of the blocks
-      return new SymbolTableEntry("", BuiltInType.Error);*/
     }
     public void PrintTable()
     {

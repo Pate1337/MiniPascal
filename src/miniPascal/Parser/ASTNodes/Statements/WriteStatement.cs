@@ -6,6 +6,7 @@ namespace Nodes
   {
     public string Style { get; set; }
     public Arguments Arguments { get; set; }
+    public Location Location { get; set; }
     public WriteStatement()
     {
       this.Style = "WriteStatement";

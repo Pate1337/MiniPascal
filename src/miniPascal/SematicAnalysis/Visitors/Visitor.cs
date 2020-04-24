@@ -25,7 +25,7 @@ namespace Semantic
     BuiltInType VisitVariable(Variable v);
     BuiltInType VisitCall(Call c);
     List<BuiltInType> VisitArguments(Arguments a);
-    BuiltInType VisitBlock(Block b, BuiltInType expectedType);
+    void VisitBlock(Block b, bool needsToReturnValue);
     void VisitAssertStatement(AssertStatement s);
     void VisitAssignmentStatement(AssignmentStatement s);
     void VisitDeclaration(Declaration s);

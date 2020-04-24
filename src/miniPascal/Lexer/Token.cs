@@ -6,12 +6,14 @@ namespace Lexer
     {
       Type = type;
       Value = value;
+      OriginalValue = value;
       Location = new Nodes.Location(0, 0, "empty");
     }
     public Token(TokenType type, string value, int lineNumber, int column, string file)
     {
       Type = type;
       Value = value;
+      OriginalValue = value;
       Location = new Nodes.Location(lineNumber, column, file);
     }
     public override string ToString()
@@ -21,6 +23,7 @@ namespace Lexer
 
     public TokenType Type { get; set; }
     public string Value { get; set; }
+    public string OriginalValue { get; set; } // Because of case-insensitivity
     public Nodes.Location Location { get; set; }
   }
 }

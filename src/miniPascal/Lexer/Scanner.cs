@@ -14,7 +14,7 @@ namespace Lexer
       "end", "var", "array", "procedure", "function", "program", "assert", "return"
     };
     private string[] predefinedIndetifiers = {
-      "Boolean", "false", "integer", "read", "real", "size", "string", "true",
+      "boolean", "false", "integer", "read", "real", "size", "string", "true",
       "writeln"
     };
 
@@ -43,6 +43,7 @@ namespace Lexer
       if (token.Type == TokenType.Identifier)
       {
         // TODO: Case non-sensitivity here
+        token.Value = token.Value.ToLower();
         bool isKeyword = HandleKeywords(token);
         if (!isKeyword) HandlePredefinedIdentifiers(token);
       }

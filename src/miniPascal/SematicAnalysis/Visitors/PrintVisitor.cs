@@ -32,13 +32,6 @@ namespace Semantic
     }
     public void VisitProgram(ProgramNode p)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public List<Procedure> Procedures {get; set; }
-      public List<Function> Functions { get; set; }
-      public Block Block { get; set; }
-      */
       this.io.Write($"(<{p.Style}>: Name: {p.Name},");
       this.depth++;
       if (p.Procedures.Count > 0)
@@ -60,12 +53,6 @@ namespace Semantic
     }
     public void VisitProcedure(Procedure p)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Block Block { get; set; }
-      public List<Parameter> Parameters { get; set; }
-      */
       EnterNode(p);
       this.io.Write($"Name: {p.Name},");
       if (p.Parameters.Count > 0)
@@ -80,13 +67,6 @@ namespace Semantic
     }
     public void VisitFunction(Function f)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Block Block { get; set; }
-      public Type Type { get; set; }
-      public List<Parameter> Parameters;
-      */
       EnterNode(f);
       this.io.Write($"Name: {f.Name},");
       if (f.Parameters.Count > 0)
@@ -102,12 +82,8 @@ namespace Semantic
       f.Block.Visit(this);
       ExitNode();
     }
-    public BuiltInType VisitBlock(Block b, BuiltInType expectedType)
+    public void VisitBlock(Block b, bool needsToReturnValue)
     {
-      /*
-      public string Style { get; set; }
-      public List<Statement> statements;
-      */
       EnterNode(b);
       if (b.statements.Count > 0)
       {
@@ -116,16 +92,9 @@ namespace Semantic
         this.io.Write("]");
       }
       ExitNode();
-      return expectedType;
     }
     public BuiltInType VisitCall(Call c)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Arguments Arguments { get; set; }
-      public bool Size { get; set; }
-      */
       EnterNode(c);
       this.io.Write($"Name: {c.Name}, Size: {c.Size}");
       if (c.Arguments != null)
@@ -140,10 +109,6 @@ namespace Semantic
     }
     public void VisitAssertStatement(AssertStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Expression BooleanExpression { get; set; }
-      */
       EnterNode(s);
       this.io.Write("BooleanExpression:");
       s.BooleanExpression.Visit(this);
@@ -151,11 +116,6 @@ namespace Semantic
     }
     public void VisitAssignmentStatement(AssignmentStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Variable Variable { get; set; }
-      public Expression Expression { get; set; }
-      */
       EnterNode(s);
       this.io.Write("Variable:");
       s.Variable.Visit(this);
@@ -165,14 +125,8 @@ namespace Semantic
     }
     public void VisitDeclaration(Declaration s)
     {
-      /*
-      public string Style { get; set; }
-      public List<string> Identifiers { get; set; }
-      public Type Type { get; set; }
-      */
       EnterNode(s);
       this.io.Write("Identifiers: [");
-      // foreach (string id in s.Identifiers) this.io.Write($"{id}, ");
       int i = 1;
       foreach (Lexer.Token t in s.Identifiers)
       {
@@ -186,12 +140,6 @@ namespace Semantic
     }
     public void VisitIfStatement(IfStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Expression BooleanExpression { get; set; }
-      public Statement ThenStatement { get; set; }
-      public Statement ElseStatement { get; set; }
-      */
       EnterNode(s);
       this.io.Write("BooleanExpression:");
       s.BooleanExpression.Visit(this);
@@ -206,10 +154,6 @@ namespace Semantic
     }
     public void VisitReadStatement(ReadStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public List<Variable> Variables { get; set; }
-      */
       EnterNode(s);
       this.io.Write("Variables: [");
       foreach (Variable v in s.Variables) v.Visit(this);
@@ -218,10 +162,6 @@ namespace Semantic
     }
     public void VisitReturnStatement(ReturnStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Expression Expression { get; set; }
-      */
       EnterNode(s);
       if (s.Expression != null)
       {
@@ -232,11 +172,6 @@ namespace Semantic
     }
     public void VisitWhileStatement(WhileStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Expression BooleanExpression { get; set; }
-      public Statement Statement { get; set; }
-      */
       EnterNode(s);
       this.io.Write("BooleanExpression:");
       s.BooleanExpression.Visit(this);
@@ -246,10 +181,6 @@ namespace Semantic
     }
     public void VisitWriteStatement(WriteStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Arguments Arguments { get; set; }
-      */
       EnterNode(s);
       if (s.Arguments != null)
       {
@@ -260,10 +191,6 @@ namespace Semantic
     }
     public List<BuiltInType> VisitArguments(Arguments a)
     {
-      /*
-      public string Style { get; set; }
-      public List<Expression> Expressions { get; set; }
-      */
       EnterNode(a);
       if (a.Expressions.Count > 0)
       {
@@ -311,12 +238,6 @@ namespace Semantic
     }
     public BuiltInType VisitSimpleExpression(SimpleExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public string Sign { get; set; }
-      public Term Term { get; set; }
-      public List<SimpleExpressionAddition> Additions { get; set; }
-      */
       EnterNode(e);
       if (e.Sign != null) this.io.Write($"Sign: {e.Sign}, ");
       if (e.Location != null) this.io.Write($"line: {e.Location.Line}, column: {e.Location.Column}, ");
@@ -333,12 +254,6 @@ namespace Semantic
     }
     public BuiltInType VisitBooleanExpression(BooleanExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public SimpleExpression Left { get; set; }
-      public string RelationalOperator { get; set; }
-      public SimpleExpression Right { get; set; }
-      */
       EnterNode(e);
       this.io.Write($"RelationalOperator: {e.RelationalOperator}, Left:");
       e.Left.Visit(this);
@@ -349,11 +264,6 @@ namespace Semantic
     }
     public BuiltInType VisitClosedExpression(ClosedExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public Expression Expression { get; set; }
-      */
       EnterNode(e);
       this.io.Write($"Size: {e.Size}, Expression:");
       e.Expression.Visit(this);
@@ -362,11 +272,6 @@ namespace Semantic
     }
     public BuiltInType VisitSimpleExpressionAddition(SimpleExpressionAddition e)
     {
-      /*
-      public string AddingOperator { get; set; }
-      public Term Term { get; set; }
-      public string Style { get; set; }
-      */
       EnterNode(e);
       this.io.Write($"AddingOperator: {e.AddingOperator}, Term:");
       e.Term.Visit(this);
@@ -375,11 +280,6 @@ namespace Semantic
     }
     public BuiltInType VisitTerm(Term t)
     {
-      /*
-      public string Style { get; set; }
-      public Factor Factor { get; set; }
-      public List<TermMultiplicative> Multiplicatives { get; set; }
-      */
       EnterNode(t);
       this.io.Write("Factor:");
       t.Factor.Visit(this);
@@ -394,11 +294,6 @@ namespace Semantic
     }
     public BuiltInType VisitTermMultiplicative(TermMultiplicative t)
     {
-      /*
-      public string MultiplyingOperator { get; set; }
-      public Factor Factor { get; set; }
-      public string Style { get; set; }
-      */
       EnterNode(t);
       this.io.Write($"MultiplyingOperator: {t.MultiplyingOperator}, Factor:");
       t.Factor.Visit(this);
@@ -407,11 +302,6 @@ namespace Semantic
     }
     public BuiltInType VisitIntegerLiteral(IntegerLiteral l)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public int Value { get; set; }
-      */
       EnterNode(l);
       this.io.Write($"Size: {l.Size}, Value: {l.Value}");
       ExitNode();
@@ -419,11 +309,6 @@ namespace Semantic
     }
     public BuiltInType VisitStringLiteral(StringLiteral l)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public string Value { get; set; }
-      */
       EnterNode(l);
       this.io.Write($"Size: {l.Size}, Value: {l.Value}");
       ExitNode();
@@ -431,11 +316,6 @@ namespace Semantic
     }
     public BuiltInType VisitRealLiteral(RealLiteral l)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public string Value { get; set; }
-      */
       EnterNode(l);
       this.io.Write($"Size: {l.Size}, Value: {l.Value}");
       ExitNode();
@@ -443,11 +323,6 @@ namespace Semantic
     }
     public BuiltInType VisitNegationFactor(NegationFactor f)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public Factor Factor { get; set; }
-      */
       EnterNode(f);
       this.io.Write($"Size: {f.Size}, Factor:");
       f.Factor.Visit(this);
@@ -456,12 +331,6 @@ namespace Semantic
     }
     public BuiltInType VisitVariable(Variable v)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public bool Size { get; set; }
-      public Expression IntegerExpression { get; set; }
-      */
       EnterNode(v);
       this.io.Write($"Name: {v.Name}, Size: {v.Size}");
       if (v.IntegerExpression != null)

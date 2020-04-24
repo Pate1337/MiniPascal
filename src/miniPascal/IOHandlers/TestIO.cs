@@ -7,12 +7,14 @@ namespace IO
     private string[] inputs;
     private int index;
     List<string> outputs;
+    List<string> warnings;
 
     public TestIO(string[] inputs)
     {
       this.inputs = inputs;
       this.index = 0;
       this.outputs = new List<string>();
+      this.warnings = new List<string>();
     }
     public string ReadLine()
     {

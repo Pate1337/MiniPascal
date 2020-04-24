@@ -9,87 +9,48 @@ namespace Semantic
   public class TypeCheckVisitor : Visitor
   {
     private IOHandler io;
-    private List<Error> Errors;
     private SymbolTableHandler Table;
     private Reader reader;
+    private BuiltInType expectedReturnType;
+    private bool allPathsReturnValue;
+    private List<Warning> warnings;
 
     public TypeCheckVisitor(IOHandler io, Reader reader)
     {
       this.io = io;
-      this.Errors = new List<Error>();
       this.Table = new SymbolTableHandler(io, reader);
       this.reader = reader;
+      this.allPathsReturnValue = false;
+      this.warnings = new List<Warning>();
     }
     public void VisitProgram(ProgramNode p)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public List<Procedure> Procedures {get; set; }
-      public List<Function> Functions { get; set; }
-      public Block Block { get; set; }
-      */
       this.Table.AddEntry(p.Name, new SymbolTableEntry(p.Name, BuiltInType.Void), p.Location);
       foreach (Procedure procedure in p.Procedures) procedure.Visit(this);
       foreach (Function f in p.Functions) f.Visit(this);
+      this.expectedReturnType = BuiltInType.None;
       p.Block.Visit(this);
+      foreach (Warning w in this.warnings) w.Print(this.io);
     }
-    public BuiltInType VisitBlock(Block b, BuiltInType expectedType)
+    public void VisitBlock(Block b, bool needsToReturnValue)
     {
-      // TODO: VisitBlock(Block b, BuiltInType type)
-      // If type == BuiltInType.Void, if one of stmt Style is returnStatement. Error
-      // If type != BuiltInType.Void, all possible exit points must return type
-
-      /*
-      EXIT POINTS:
-
-      Only if the outermost if!
-      If then else : if both have return => no need at the end
-      If then else : if only one has return => needs return at the end
-      If then : needs return at the end
-      If no if : needs return at the end
-      */
-
-      /*
-      if (1 = 1)
-        then 
-      */
-
-      /*
-      public string Style { get; set; }
-      public List<Statement> statements;
-      */
+      bool returnsBeforeEnd = false;
       this.Table.AddNewBlock();
-      foreach (Statement stmt in b.statements) stmt.Visit(this);
-      this.Table.RemoveCurrentBlock();
-      return expectedType;
-    }
-    /*public BuiltInType VisitBlock(Block b, BuiltInType expectedType)
-    {
-      this.Table.AddNewBlock();
-      bool allPathsReturnValue = true;
+      int i = 1;
       foreach (Statement stmt in b.statements)
       {
-        BuiltInType stmtType = stmt.Visit(this);
-        if (IsStructuredStatement(stmt))
-        {
-          if (stmtType == BuiltInType.Empty) allPathsReturnValue = false;
-        }
-        // Otherwise no need to do more
-      }
-      if (expectedType != BuiltInType.Void && !allPathsReturnValue)
-      {
-        new Error("Not all paths return a value.", b.Location, this.reader).Print(this.io);
+        if (returnsBeforeEnd) this.warnings.Add(new Warning($"Unreachable code detected.", stmt.Location));
+        // Only if or return statements can switch to true.
+        this.allPathsReturnValue = false;
+        stmt.Visit(this);
+        if (this.allPathsReturnValue && i < b.statements.Count) returnsBeforeEnd = true;
+        i++;
       }
       this.Table.RemoveCurrentBlock();
-    }*/
+      if (!returnsBeforeEnd && needsToReturnValue && !this.allPathsReturnValue) new Error("Not all paths return a value", b.Location, this.reader).Print(this.io);
+    }
     public void VisitDeclaration(Declaration s)
     {
-      /*
-      public string Style { get; set; }
-      public List<string> Identifiers { get; set; }
-      public Type Type { get; set; }
-      */
       BuiltInType type = s.Type.Visit(this);
       if (type != BuiltInType.Error) 
       {
@@ -104,16 +65,7 @@ namespace Semantic
     }
     public void VisitProcedure(Procedure p)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Block Block { get; set; }
-      public List<Parameter> Parameters { get; set; }
-      public Location Location { get; set; }
-      */
-
-      // TODO: Find out a way to error if block contains a return statement!
-
+      this.expectedReturnType = BuiltInType.Void;
       SymbolTableEntry entry = new SymbolTableEntry(p.Name, BuiltInType.Void);
       this.Table.AddEntry(p.Name, entry, p.Location);
 
@@ -127,7 +79,6 @@ namespace Semantic
       foreach (Parameter par in p.Parameters)
       {
         // Add the names of parameters to this identifiers SymbolTableEntry
-        // parameters.Add(par.Name);
 
         // The parameter declarations are added to SymbolTable in par.Visit(this)
         SymbolTableEntry e = par.Visit(this);
@@ -140,8 +91,7 @@ namespace Semantic
       if (!invalidParameters)
       {
         // Only if no errors
-        // p.Block.Visit(this);
-        HandleBlockWithoutReturns(p.Block);
+        p.Block.Visit(this);
       }
 
       // Remove the current scope
@@ -150,17 +100,18 @@ namespace Semantic
     public void VisitFunction(Function f)
     {
       /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Block Block { get; set; }
-      public Type Type { get; set; }
-      public List<Parameter> Parameters;
+      Outer Block: funtion name
+      Middle block: parameters
+      Inner block: local variables
       */
       BuiltInType funcType = f.Type.Visit(this);
       if (funcType != BuiltInType.Error)
       {
+        this.expectedReturnType = funcType;
         SymbolTableEntry entry = new SymbolTableEntry(f.Name, funcType);
         this.Table.AddEntry(f.Name, entry, f.Location);
+
+        // TODO: If AddEntry fails, maybe stop.
 
         this.Table.AddNewBlock();
 
@@ -176,22 +127,14 @@ namespace Semantic
         if (!invalidParameters)
         {
           // Only if no errors
-          // f.Block.Visit(this);
-          HandleBlockThatReturns(f.Block, funcType);
+          f.Block.Visit(this, true);
         }
-
         // Remove the current scope
         this.Table.RemoveCurrentBlock();
       }
     }
     public SymbolTableEntry VisitReferenceParameter(ReferenceParameter rp)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Type Type { get; set; }
-      public Location Location { get; set; }
-      */
       BuiltInType type = rp.Type.Visit(this);
       if (type == BuiltInType.Error) return new SymbolTableEntry(rp.Name, BuiltInType.Error);
       // Only add to symbol table if valid
@@ -201,12 +144,6 @@ namespace Semantic
     }
     public SymbolTableEntry VisitValueParameter(ValueParameter vp)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Type Type { get; set; }
-      public Location Location { get; set; }
-      */
       BuiltInType type = vp.Type.Visit(this);
       if (type == BuiltInType.Error) return new SymbolTableEntry(vp.Name, BuiltInType.Error);
       // Only add to symbol table if valid
@@ -216,11 +153,6 @@ namespace Semantic
     }
     public BuiltInType VisitArrayType(ArrayType t)
     {
-      /*
-      public string Style { get; set; }
-      public BuiltInType Type { get; set; }
-      public Expression IntegerExpression { get; set; } 
-      */
       if (t.IntegerExpression == null) return t.Type;
       BuiltInType exprType = t.IntegerExpression.Visit(this);
       if (exprType == BuiltInType.Error) return BuiltInType.Error;
@@ -233,20 +165,10 @@ namespace Semantic
     }
     public BuiltInType VisitSimpleType(SimpleType t)
     {
-      /*
-      public string Style { get; set; }
-      public BuiltInType Type { get; set; }
-      */
       return t.Type;
     }
     public BuiltInType VisitSimpleExpression(SimpleExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public string Sign { get; set; }
-      public Term Term { get; set; }
-      public List<SimpleExpressionAddition> Additions { get; set; }
-      */
       BuiltInType termType = e.Term.Visit(this);
       if (termType == BuiltInType.Error) return BuiltInType.Error;
       if (e.Sign != null && termType != BuiltInType.Integer && termType != BuiltInType.Real)
@@ -265,12 +187,6 @@ namespace Semantic
     }
     public BuiltInType VisitBooleanExpression(BooleanExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public SimpleExpression Left { get; set; }
-      public string RelationalOperator { get; set; }
-      public SimpleExpression Right { get; set; }
-      */
       BuiltInType leftType = e.Left.Visit(this);
       BuiltInType rightType = e.Right.Visit(this);
       if (leftType == BuiltInType.Error || rightType == BuiltInType.Error) return BuiltInType.Error;
@@ -284,11 +200,6 @@ namespace Semantic
     }
     public BuiltInType VisitClosedExpression(ClosedExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public Expression Expression { get; set; }
-      */
       BuiltInType exprType = e.Expression.Visit(this);
       if (exprType == BuiltInType.Error) return BuiltInType.Error;
       if (e.Size)
@@ -301,11 +212,6 @@ namespace Semantic
     }
     public BuiltInType VisitSimpleExpressionAddition(SimpleExpressionAddition e)
     {
-      /*
-      public string AddingOperator { get; set; }
-      public Term Term { get; set; }
-      public string Style { get; set; }
-      */
       BuiltInType termType = e.Term.Visit(this);
       if (termType == BuiltInType.Error) return BuiltInType.Error;
       BuiltInType addType = HandleAdditionOperation(e.AddingOperator, termType, e.Term.Factor.Location);
@@ -313,11 +219,6 @@ namespace Semantic
     }
     public BuiltInType VisitTerm(Term t)
     {
-      /*
-      public string Style { get; set; }
-      public Factor Factor { get; set; }
-      public List<TermMultiplicative> Multiplicatives { get; set; }
-      */
       BuiltInType factorType = t.Factor.Visit(this);
       if (factorType == BuiltInType.Error) return BuiltInType.Error;
       foreach (TermMultiplicative m in t.Multiplicatives)
@@ -331,11 +232,6 @@ namespace Semantic
     }
     public BuiltInType VisitTermMultiplicative(TermMultiplicative t)
     {
-      /*
-      public string MultiplyingOperator { get; set; }
-      public Factor Factor { get; set; }
-      public string Style { get; set; }
-      */
       // <multiplying operator> ::= "*" | "/" | "%" | "and"
       BuiltInType factorType = t.Factor.Visit(this);
       if (factorType == BuiltInType.Error) return BuiltInType.Error;
@@ -344,11 +240,6 @@ namespace Semantic
     }
     public BuiltInType VisitIntegerLiteral(IntegerLiteral l)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public string Value { get; set; }
-      */
       if (l.Size) return HandleIllegalSizeCall(BuiltInType.Integer, l.SizeLocation);
       return BuiltInType.Integer;
     }
@@ -364,14 +255,6 @@ namespace Semantic
     }
     public BuiltInType VisitNegationFactor(NegationFactor f)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public Factor Factor { get; set; }
-      public Location SizeLocation { get; set; }
-      // Location of "not"
-      public Location Location { get; set; }
-      */
       BuiltInType factorType = f.Factor.Visit(this);
       if (factorType == BuiltInType.Error) return BuiltInType.Error;
       if (factorType != BuiltInType.Boolean)
@@ -383,16 +266,6 @@ namespace Semantic
     }
     public BuiltInType VisitVariable(Variable v)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public bool Size { get; set; }
-      // If IntegerExpression is set, means x[IntegerExpression]
-      public Expression IntegerExpression { get; set; }
-      public Location SizeLocation { get; set; }
-      // Location of Name
-      public Location Location { get; set; }
-      */
       SymbolTableEntry e = this.Table.GetEntry(v.Name, v.Location);
 
       // Error printed in SymbolTable
@@ -419,7 +292,7 @@ namespace Semantic
         if (exprType == BuiltInType.Error) return BuiltInType.Error;
         if (exprType != BuiltInType.Integer)
         {
-          new Error($"Expected {v.Name}[ Integer ], instead got {v.Name}[ {exprType} ].", v.Location, this.reader).Print(this.io);
+          new Error($"Expected {v.Name}[ <Integer> ], instead got {v.Name}[ <{exprType}> ].", v.Location, this.reader).Print(this.io);
           return BuiltInType.Error;
         }
 
@@ -429,7 +302,6 @@ namespace Semantic
         // If everything ok, return the type of which the array consists of
         return arrayElementType;
       }
-      
       if (v.Size)
       {
         if (IsArray(e.Type)) return BuiltInType.Integer;
@@ -439,14 +311,6 @@ namespace Semantic
     }
     public BuiltInType VisitCall(Call c)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Arguments Arguments { get; set; }
-      public bool Size { get; set; }
-      public Location SizeLocation { get; set; }
-      public Location Location { get; set; }
-      */
       SymbolTableEntry e = this.Table.GetEntry(c.Name, c.Location);
       if (e.Type == BuiltInType.Error) return BuiltInType.Error;
       if (e.Parameters == null)
@@ -457,12 +321,15 @@ namespace Semantic
       List<BuiltInType> argumentTypes = c.Arguments.Visit(this);
       List<BuiltInType> requiredTypes = new List<BuiltInType>();
 
+      List<int> refParameters = new List<int>();
+      int index = 0;
       foreach (SymbolTableEntry p in e.Parameters)
       {
         // Can be Error if not declared.
         if (p.Type != BuiltInType.Error)
         {
           requiredTypes.Add(p.Type);
+          if (p.ParameterType == "ref") refParameters.Add(index);
         }
         else
         {
@@ -470,8 +337,8 @@ namespace Semantic
           new Error($"{(e.Type == BuiltInType.Void ? "Procedure" : "Function")} {c.Name} is not correctly declared!", c.Location, this.reader).Print(this.io);
           return BuiltInType.Error;
         }
+        index++;
       }
-
       string requiredTypesAsString = Utils.StringHandler.BuiltInTypeListToString(requiredTypes);
       string argumentTypesAsString = Utils.StringHandler.BuiltInTypeListToString(argumentTypes);
       if (argumentTypes.Count != requiredTypes.Count)
@@ -479,6 +346,14 @@ namespace Semantic
         new Error($"{(e.Type == BuiltInType.Void ? "Procedure" : "Function")} {c.Name} expects {requiredTypes.Count} argument(s){(requiredTypes.Count > 0 ? " of type " + requiredTypesAsString : "")}. Instead got {argumentTypes.Count} argument(s){(argumentTypes.Count > 0 ? " of type " + argumentTypesAsString : "")}", c.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
+
+      // Check that ref parameters are passed correctly
+      foreach (int indx in refParameters)
+      {
+        if (!ExpressionCanBeUsedAsReferenceParameter(c.Arguments.Expressions[indx])) new Error($"Reference parameters need to be passed as variables.", c.Location, this.reader).Print(this.io);
+        return BuiltInType.Error;
+      }
+
       // Check that the argumentTypes match the SymbolTableEntry's parameter types
       bool error = false;
       int i = 0;
@@ -500,10 +375,6 @@ namespace Semantic
     }
     public List<BuiltInType> VisitArguments(Arguments a)
     {
-      /*
-      public string Style { get; set; }
-      public List<Expression> Expressions { get; set; }
-      */
       List<BuiltInType> types = new List<BuiltInType>();
       foreach (Expression e in a.Expressions)
       {
@@ -512,52 +383,97 @@ namespace Semantic
       }
       return types;
     }
-    public void VisitAssertStatement(AssertStatement s){}
-    public void VisitAssignmentStatement(AssignmentStatement s){}
+    public void VisitAssertStatement(AssertStatement s)
+    {
+      BuiltInType exprType = s.BooleanExpression.Visit(this);
+      if (exprType != BuiltInType.Error && exprType != BuiltInType.Boolean) new Error($"Expected assert( <Boolean> ). Instead got assert( <{exprType}> ).", s.Location, this.reader).Print(this.io);
+    }
+    public void VisitAssignmentStatement(AssignmentStatement s)
+    {
+      BuiltInType varType = s.Variable.Visit(this);
+      if (varType != BuiltInType.Error)
+      {
+        BuiltInType exprType = s.Expression.Visit(this);
+        if (exprType != BuiltInType.Error)
+        {
+          string id = s.Variable.Name;
+          if (varType != exprType) new Error($"Can not assign {exprType} into a {varType} variable {id}.", s.Location, this.reader).Print(this.io);
+          else this.Table.Assign(id, s.Location); // Does the checks for illegal assignments
+        }
+      }
+    }
     public void VisitIfStatement(IfStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Expression BooleanExpression { get; set; }
-      public Statement ThenStatement { get; set; }
-      public Statement ElseStatement { get; set; }
-      */
+      this.allPathsReturnValue = false;
+      bool allPathsReturnValue = false;
       BuiltInType exprType = s.BooleanExpression.Visit(this);
       if (exprType != BuiltInType.Boolean && exprType != BuiltInType.Error) new Error($"Expected Boolean expression after keyword \"if\". Instead got {exprType}.", s.Location, this.reader).Print(this.io);
+      // Also check blocks even if there was an error in the expression
       s.ThenStatement.Visit(this);
+      if (this.allPathsReturnValue) allPathsReturnValue = true;
       if (s.ElseStatement != null)
       {
         s.ElseStatement.Visit(this);
+        if (this.allPathsReturnValue && allPathsReturnValue) allPathsReturnValue = true;
+        else allPathsReturnValue = false;
+      }
+      else allPathsReturnValue = false; // Only "if then" does not return value on all paths
+      this.allPathsReturnValue = allPathsReturnValue;
+    }
+    public void VisitReadStatement(ReadStatement s)
+    {
+      foreach (Variable v in s.Variables)
+      {
+        BuiltInType varType = v.Visit(this);
+        if (IsArray(varType) || varType == BuiltInType.Boolean) new Error($"Can not read into variable \"{v.Name}\" of type {varType}. Can only read to variables of type Integer, String or Real.", v.Location, this.reader).Print(this.io);
+        else if (varType != BuiltInType.Error) this.Table.Assign(v.Name, v.Location); // Reports illegal assignments
       }
     }
-    public void VisitReadStatement(ReadStatement s){}
-    public void VisitReturnStatement(ReturnStatement s){}
-    public void VisitWhileStatement(WhileStatement s){}
+    public void VisitReturnStatement(ReturnStatement s)
+    {
+      this.allPathsReturnValue = true;
+      if (this.expectedReturnType == BuiltInType.None) new Error("Return statement is not allowed in the main block.", s.Location, this.reader).Print(this.io);
+      else
+      {
+        BuiltInType returnType;
+        if (s.Expression == null) returnType = BuiltInType.Void;
+        else returnType = s.Expression.Visit(this);
+        if (returnType != BuiltInType.Error)
+        {
+          // Only if no Error in expression
+          if (returnType != this.expectedReturnType) new Error($"Expected a return type of {this.expectedReturnType}. Instead got {returnType}.", s.Location, this.reader).Print(this.io);
+        }
+      }
+    }
+    public void VisitWhileStatement(WhileStatement s)
+    {
+      BuiltInType exprType = s.BooleanExpression.Visit(this);
+      if (exprType != BuiltInType.Boolean && exprType != BuiltInType.Error) new Error($"Expected Boolean expression after keyword \"while\". Instead got {exprType}.", s.Location, this.reader).Print(this.io);
+      s.Statement.Visit(this);
+    }
     public void VisitWriteStatement(WriteStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Arguments Arguments { get; set; }
-      */
       s.Arguments.Visit(this);
     }
-    private void HandleBlockThatReturns(Block b, BuiltInType type)
+    private bool ExpressionCanBeUsedAsReferenceParameter(Expression e)
     {
-      // Make sure that all the branches of the block has a return statement
-      // that return type
-      b.Visit(this, type);
-    }
-    private void HandleBlockWithoutReturns(Block b)
-    {
-      // Make sure that none of the statements are return statements
-      b.Visit(this);
+      if (e.Style != "SimpleExpression") return false;
+      SimpleExpression simple = (SimpleExpression) e;
+      if (simple.Sign != null) return false;
+      if (simple.Additions.Count != 0) return false;
+      Term term = simple.Term;
+      if (term.Multiplicatives.Count != 0) return false;
+      Factor factor = term.Factor;
+      if (factor.Size == true) return false;
+      Node factorNode = (Node) factor;
+      if (factorNode.Style != "Variable") return false;
+      return true;
     }
     private BuiltInType HandleIllegalSizeCall(BuiltInType type, Location loc)
     {
       new Error($"Can not do size-operation for {type}", loc, this.reader).Print(this.io);
       return BuiltInType.Error;
     }
-    // private BuiltInType GetArrayElementVariableType(Variable v)
     private bool VariableIsArrayElement(Variable v)
     {
       return v.IntegerExpression != null;
@@ -582,7 +498,6 @@ namespace Semantic
           if (op == "*") errOp = "multiply";
           if (t != BuiltInType.Integer && t != BuiltInType.Real)
           {
-            // this.io.WriteLine($"Can not {errOp} by {t} [{l}]");
             new Error($"Can not {errOp} by {t}", l, this.reader).Print(this.io);
             return BuiltInType.Error;
           }
@@ -590,7 +505,6 @@ namespace Semantic
         case "%":
           if (t != BuiltInType.Integer)
           {
-            // this.io.WriteLine($"Operator \"%\" expects an Integer on the right-hand-side, instead got {t} [{l}]");
             new Error($"Operator \"%\" expects an Integer on the right-hand-side, instead got {t}", l, this.reader).Print(this.io);
             return BuiltInType.Error;
           }
@@ -606,7 +520,6 @@ namespace Semantic
         case "-":
           if (t != BuiltInType.Integer && t != BuiltInType.Real)
           {
-            // this.io.WriteLine($"Can not subtract {t} [{l}]");
             new Error($"Can not subtract {t}", l, this.reader).Print(this.io);
             return BuiltInType.Error;
           }
