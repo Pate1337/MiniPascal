@@ -19,6 +19,17 @@ namespace Utils
         throw new Error($"Could not read file {file}.");
       }
     }
+    public static System.IO.StreamWriter CreateStreamWriter(string path)
+    {
+      try
+      {
+        return new System.IO.StreamWriter(path);
+      }
+      catch (System.Exception)
+      {
+        throw new Error($"Could not create file {path}.");
+      }
+    }
     /*public static string ReadAllText(string file)
     {
       try

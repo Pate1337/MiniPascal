@@ -61,6 +61,7 @@ namespace Semantic
           this.Table.AddEntry(t.Value, new SymbolTableEntry(t.Value, type), t.Location);
         }
       }
+      s.BuiltInType = type;
       // else there has not been an IntegerExpression inside []. No need to error again.
     }
     public void VisitProcedure(Procedure p)
@@ -135,20 +136,19 @@ namespace Semantic
     }
     public SymbolTableEntry VisitReferenceParameter(ReferenceParameter rp)
     {
-      BuiltInType type = rp.Type.Visit(this);
-      if (type == BuiltInType.Error) return new SymbolTableEntry(rp.Name, BuiltInType.Error);
-      // Only add to symbol table if valid
-      SymbolTableEntry entry = new SymbolTableEntry(rp.Name, type, "ref");
-      this.Table.AddEntry(rp.Name, entry, rp.Location);
-      return entry;
+      return VisitParameter(rp, "ref");
     }
     public SymbolTableEntry VisitValueParameter(ValueParameter vp)
     {
-      BuiltInType type = vp.Type.Visit(this);
-      if (type == BuiltInType.Error) return new SymbolTableEntry(vp.Name, BuiltInType.Error);
+      return VisitParameter(vp, "val");
+    }
+    private SymbolTableEntry VisitParameter(Parameter p, string parameterType)
+    {
+      BuiltInType type = p.Type.Visit(this);
+      if (type == BuiltInType.Error) return new SymbolTableEntry(p.Name, BuiltInType.Error);
       // Only add to symbol table if valid
-      SymbolTableEntry entry = new SymbolTableEntry(vp.Name, type, "val");
-      this.Table.AddEntry(vp.Name, entry, vp.Location);
+      SymbolTableEntry entry = new SymbolTableEntry(p.Name, type, parameterType);
+      this.Table.AddEntry(p.Name, entry, p.Location);
       return entry;
     }
     public BuiltInType VisitArrayType(ArrayType t)
@@ -183,6 +183,7 @@ namespace Semantic
         termType = HandleAdditionOperation(a.AddingOperator, termType, additionType, a.Location);
         if (termType == BuiltInType.Error) return BuiltInType.Error;
       }
+      e.Type = termType;
       return termType;
     }
     public BuiltInType VisitBooleanExpression(BooleanExpression e)
@@ -204,10 +205,15 @@ namespace Semantic
       if (exprType == BuiltInType.Error) return BuiltInType.Error;
       if (e.Size)
       {
-        if (IsArray(exprType)) return BuiltInType.Integer;
+        if (IsArray(exprType))
+        {
+          e.Type = BuiltInType.Integer;
+          return BuiltInType.Integer;
+        }
         // TODO: If String size possible, add here
         return HandleIllegalSizeCall(exprType, e.SizeLocation);
       }
+      e.Type = exprType;
       return exprType;
     }
     public BuiltInType VisitSimpleExpressionAddition(SimpleExpressionAddition e)
@@ -228,6 +234,7 @@ namespace Semantic
         factorType = HandleMultiplyingOperation(m.MultiplyingOperator, factorType, mulType, m.Location);
         if (factorType == BuiltInType.Error) return BuiltInType.Error;
       }
+      t.Type = factorType;
       return factorType;
     }
     public BuiltInType VisitTermMultiplicative(TermMultiplicative t)
@@ -300,6 +307,7 @@ namespace Semantic
         if (v.Size) return HandleIllegalSizeCall(arrayElementType, v.SizeLocation);
 
         // If everything ok, return the type of which the array consists of
+        v.Type = arrayElementType;
         return arrayElementType;
       }
       if (v.Size)
@@ -307,6 +315,7 @@ namespace Semantic
         if (IsArray(e.Type)) return BuiltInType.Integer;
         return HandleIllegalSizeCall(e.Type, v.SizeLocation);
       }
+      v.Type = e.Type;
       return e.Type;
     }
     public BuiltInType VisitCall(Call c)
@@ -381,6 +390,7 @@ namespace Semantic
         types.Add(e.Visit(this));
         // No need to give error message here
       }
+      a.Types = types;
       return types;
     }
     public void VisitAssertStatement(AssertStatement s)
@@ -401,6 +411,7 @@ namespace Semantic
           else this.Table.Assign(id, s.Location); // Does the checks for illegal assignments
         }
       }
+      // If everything is ok, decorate the AssignmentStatement Node with the type
     }
     public void VisitIfStatement(IfStatement s)
     {

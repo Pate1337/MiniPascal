@@ -23,3 +23,11 @@ ja jos kaikki haarat eivät palauta arvoa.
 24.04.2020 | 4h | TypeCheckVisitor saatu valmiiksi. Tällä hetkellä kieli ei salli uusia 
 muuttujan alustuksia inner scopeissa, jos sama muuttuja on alustettu ylemmällä tasolla.
 Case-insensitivity lisätty.
+01.05.2020 | 4h | Aloiteltu koodin kääntämistä. Perehdyin CIL:iin, mutta päädyin kääntämään 
+koodin C-kieleksi. Johtuen siitä, että C-kieltä voi kääntää lähes kaikilla alustoilla.
+Luotu koodi, joka luo aluksi ".c" tiedoston, sen jälkeen kääntää tiedoston gcc:llä ja 
+lopuksi suorittaa käännetyn koodin.
+07.05.2020 | 5h | Vihdoinkin päästy hyvään alkuun koodin kääntämisestä C-kielelle.
+
+
+BUGIT:

@@ -3,6 +3,7 @@ using Errors;
 using IO;
 using FileHandler;
 using Semantic;
+using CodeGeneration;
 
 namespace miniPascal
 {
@@ -24,6 +25,15 @@ namespace miniPascal
 
                 TypeCheckVisitor v = new TypeCheckVisitor(io, reader);
                 v.VisitProgram(ast);
+
+                string currPath = System.AppDomain.CurrentDomain.BaseDirectory;
+                FileWriter writer = new FileWriter($"{currPath}/test.c");
+
+                GeneratorVisitor gv = new GeneratorVisitor(io, reader, writer);
+                Generator generator = new Generator(writer, ast, io, gv);
+                generator.GenerateCode();
+                generator.CreateExecutable();
+                generator.RunExecutable();
 
                 /*Scanner scanner = new Scanner(reader);
 

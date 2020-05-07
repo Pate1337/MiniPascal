@@ -24,6 +24,7 @@ end;
 {*procedure p2(var a : integer, b : string, var c : integer);
 begin end;*}
 
+{*
 procedure p(var p1: string, p2: integer);
 begin
 var p1 : integer;
@@ -66,16 +67,68 @@ begin
 end;
 writeln("joo");
 end;
+*}
 
 begin 
-var a, b, c : string;
+var a : integer;
+var b : integer;
+var c : integer;
+a := 3;
+var d : array[5] of integer;
+d[a] := 4;
+var e : array[4] of integer;
+e[1] := 2;
+d[a] := e[1];
+writeln(d[a]); // 2
+writeln(e[1]); // 2
+e[1] := 4;
+writeln(d[3]); // 2
+writeln(e[1]); // 4
+//var e : integer; // this ties i3 back to e
+//e := 2;
+{*
+Should create:
+int i0;
+int i1;
+int i2;
+int i3 = 2;
+int* i4 = malloc(i3*sizeof(i3)); // frees i3
+i3 = 2;
+*}
+//b := 1;
+//c := 2;
+//a := b + c;
+//writeln(a);
+
+{*
+#include <stdio.h>
+#include <string.h>
+//#inlude <math.h> // log10
+int main() {
+char* a;
+int b;
+a=malloc(strlen("Hello world! ")+1);
+strcpy(a,"Hello world! ");
+b=3+4;
+// Now I know b is converted into a string. So: (Done in Expression level)
+// snprintf(a, strlen(a)+1+(log10(b) + 1), "%s%d", a, b)
+a=malloc(strlen(a+b)+1);
+strcpy(a,a+b);
+printf(a);
+printf("%d",b);
+printf("\n");
+return 0;
+}
+*}
+
+{*var a, b, c : string;
 var a, e : integer;
 var r : Boolean;
 read (a, r, p, i);
 var d : array[3 * 2] of string;
 var p : integer;
 writeln(p(a, 2));
-return "vittu";
+return "vittu";*}
 end .
 
 {*
@@ -117,7 +170,7 @@ TEST CASES:
 <while statement> ::= "while" <Boolean expr> "do" <statement>
 
 <expr> ::= <simple expr> |
-<simple expr> <relational operator> <simple expr>
+    <simple expr> <relational operator> <simple expr>
 <simple expr> ::= [ <sign> ] <term> { <adding operator> <term> }
 <term> ::= <factor> { <multiplying operator> <factor> }
 <factor> ::= <call> | <variable> | <literal> | "(" <expr> ")" | "not" <factor> | < factor> "." "size"

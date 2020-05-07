@@ -12,12 +12,14 @@ namespace Nodes
     public Location SizeLocation { get; set; }
     // Location of Name
     public Location Location { get; set; }
+    public BuiltInType Type { get; set; }
     public Variable()
     {
       this.Size = false;
       this.Style = "Variable";
       this.IntegerExpression = null;
       this.SizeLocation = null;
+      this.Type = BuiltInType.Error;
     }
     public BuiltInType Visit(Visitor v)
     {

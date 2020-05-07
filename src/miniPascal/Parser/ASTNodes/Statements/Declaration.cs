@@ -11,11 +11,13 @@ namespace Nodes
     public List<Token> Identifiers { get; set; }
     public Type Type { get; set; }
     public Location Location { get; set; }
+    public BuiltInType BuiltInType { get; set; }
     public Declaration()
     {
       this.Style = "Declaration";
       // this.Identifiers = new List<string>();
       this.Identifiers = new List<Token>();
+      this.BuiltInType = BuiltInType.Error;
     }
     public void Visit(Visitor v)
     {
