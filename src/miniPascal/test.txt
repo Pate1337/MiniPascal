@@ -71,21 +71,84 @@ end;
 
 begin 
 var a : integer;
+a := 5;
 var b : integer;
-var c : integer;
-a := 3;
+b := 4;
+var t : array[a] of integer;
+var y : array[b] of integer;
+t[0] := 2;
+t[1] := 3;
+t[2] := 4;
+t[3] := 5;
+t[4] := 6;
+y[0] := 7;
+y[1] := 8;
+y[2] := 9;
+y[3] := 10;
+var l : array[2] of integer;
+l := t + y;
+writeln("l[0]= ", l[0]);
+writeln("l[1]= ", l[1]);
+writeln("l[2]= ", l[2]);
+writeln("l[3]= ", l[3]);
+writeln("l[4]= ", l[4]);
+writeln("l[5]= ", l[5]);
+writeln("l[6]= ", l[6]);
+writeln("l[7]= ", l[7]);
+writeln("l[8]= ", l[8]);
+writeln("The size of array l: ", l.size);
+var c : string;
+c := "ok " + "mo".size;
+c := (-2+5) + c;
+writeln("The size of string: ", c.size);
+writeln("Size of closed expression array: ", (t+y).size);
+writeln("Size of closed expression string: ", ("jees"+"box").size);
+writeln(c);
+writeln("Ok, please work: ", "the array l printed: " + l);
+{*
+// t[5] := 7;
+y := t;
+writeln("should be 3: ", y[1]);
+writeln("should be 3 aswell: ", t[1]);
+t[1] := 5;
+writeln("should be 5: ", t[1]);
+writeln("should remain 3: ", y[1]);
+var ok : string;
+ok := "string" + (-3-5+3) + "string";
+ok := -4+"joo";
+writeln("Should be string2string: ", ok);
+var a : integer;
+var b : integer;
+var c : string;
+c := "This is temp";
+writeln("Should print: This is temp and in C-code should print s1 ", c);
+a := 1 + 1;
+a := a + 1;
+writeln("a= ", a);
+c := "Hello ";
+var i : array[a] of integer;
+i[1] := 2;
+a := i[1]+1;
+writeln("a= ", a);
+writeln("i[1] = ", i[1]);
 var d : array[5] of integer;
 d[a] := 4;
 var e : array[4] of integer;
-e[1] := 2;
-d[a] := e[1];
-writeln(d[a]); // 2
-writeln(e[1]); // 2
+e[1] := -a;
+writeln("e[1] = ", e[1]);
+writeln("a = ", a);
+d[a] := -e[1];
+writeln("d[a] = ", d[a]);
+writeln(c, a, d[a]); // 2
+c := "e[1] = ";
+writeln(c, e[1]); // 2
 e[1] := 4;
-writeln(d[3]); // 2
+writeln("jeps: ", d[3]); // 2
+writeln();
 writeln(e[1]); // 4
 //var e : integer; // this ties i3 back to e
 //e := 2;
+*}
 {*
 Should create:
 int i0;

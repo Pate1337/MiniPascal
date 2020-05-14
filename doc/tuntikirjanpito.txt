@@ -28,6 +28,8 @@ koodin C-kieleksi. Johtuen siitä, että C-kieltä voi kääntää lähes kaikil
 Luotu koodi, joka luo aluksi ".c" tiedoston, sen jälkeen kääntää tiedoston gcc:llä ja 
 lopuksi suorittaa käännetyn koodin.
 07.05.2020 | 5h | Vihdoinkin päästy hyvään alkuun koodin kääntämisestä C-kielelle.
-
+11.05.2020 | 8h | Tyyppimuunnoksia stringeiksi.
+13.05.2020 | 8h | Size-metodi toteutettu string ja talukko tyypeille.
+14.05.2020 | 6h | Kokonaisluku taulukko saadaan muutetuksi string-tyyppiseksi esitykseksi.
 
 BUGIT:

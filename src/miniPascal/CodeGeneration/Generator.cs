@@ -21,11 +21,16 @@ namespace CodeGeneration
     public void GenerateCode()
     {
       this.writer.WriteLine("#include <stdio.h>");
+      this.writer.WriteLine("#include <stdlib.h>");
       this.writer.WriteLine("#include <string.h>");
       this.writer.WriteLine("#include <math.h>");
       this.writer.WriteLine("int main() {");
       this.visitor.VisitProgram(this.ast);
       // this.writer.WriteLine("printf(\"Hello, World!\\n\");");
+      this.writer.WriteLine("goto END;");
+      this.writer.WriteLine("ERROR:");
+      this.writer.WriteLine("printf(\"Error occurred!\\n\");");
+      this.writer.WriteLine("END:");
       this.writer.WriteLine("return 0;");
       this.writer.WriteLine("}");
       this.writer.Close();

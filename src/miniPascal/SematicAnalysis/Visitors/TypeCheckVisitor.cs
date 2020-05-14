@@ -205,7 +205,7 @@ namespace Semantic
       if (exprType == BuiltInType.Error) return BuiltInType.Error;
       if (e.Size)
       {
-        if (IsArray(exprType))
+        if (IsArray(exprType) || exprType == BuiltInType.String)
         {
           e.Type = BuiltInType.Integer;
           return BuiltInType.Integer;
@@ -252,7 +252,11 @@ namespace Semantic
     }
     public BuiltInType VisitStringLiteral(StringLiteral l)
     {
-      if (l.Size) return HandleIllegalSizeCall(BuiltInType.String, l.SizeLocation);
+      if (l.Size)
+      {
+        return BuiltInType.Integer;
+        // return HandleIllegalSizeCall(BuiltInType.String, l.SizeLocation);
+      }
       return BuiltInType.String;
     }
     public BuiltInType VisitRealLiteral(RealLiteral l)
@@ -274,6 +278,8 @@ namespace Semantic
     public BuiltInType VisitVariable(Variable v)
     {
       SymbolTableEntry e = this.Table.GetEntry(v.Name, v.Location);
+
+      v.Type = e.Type;
 
       // Error printed in SymbolTable
       if (e.Type == BuiltInType.Error) return BuiltInType.Error;
@@ -303,19 +309,28 @@ namespace Semantic
           return BuiltInType.Error;
         }
 
-        // If the size of variable is called. ( var[1].size not allowed )
-        if (v.Size) return HandleIllegalSizeCall(arrayElementType, v.SizeLocation);
+        // If the size of variable is called. ( var[1].size not allowed, only for strings )
+        if (v.Size)
+        {
+          System.Console.WriteLine("arrayElementType = " + arrayElementType);
+          if (arrayElementType != BuiltInType.String) return HandleIllegalSizeCall(arrayElementType, v.SizeLocation);
+          return BuiltInType.Integer;
+        }
 
         // If everything ok, return the type of which the array consists of
-        v.Type = arrayElementType;
+        //v.Type = arrayElementType;
         return arrayElementType;
       }
       if (v.Size)
       {
-        if (IsArray(e.Type)) return BuiltInType.Integer;
+        if (IsArray(e.Type) || e.Type == BuiltInType.String)
+        {
+          //v.Type = BuiltInType.Integer;
+          return BuiltInType.Integer;
+        }
         return HandleIllegalSizeCall(e.Type, v.SizeLocation);
       }
-      v.Type = e.Type;
+      //v.Type = e.Type;
       return e.Type;
     }
     public BuiltInType VisitCall(Call c)
@@ -464,7 +479,7 @@ namespace Semantic
     }
     public void VisitWriteStatement(WriteStatement s)
     {
-      s.Arguments.Visit(this);
+      if (s.Arguments != null) s.Arguments.Visit(this);
     }
     private bool ExpressionCanBeUsedAsReferenceParameter(Expression e)
     {
@@ -520,7 +535,13 @@ namespace Semantic
             return BuiltInType.Error;
           }
           return t;
-        case "and": return t;
+        case "and":
+          if (t != BuiltInType.Boolean)
+          {
+            new Error($"Operator \"and\" expects a Boolean on the right-hand-side, instead got {t}", l, this.reader).Print(this.io);
+            return BuiltInType.Error;
+          }
+          return t;
         default: return BuiltInType.Error;
       }
     }
@@ -536,6 +557,12 @@ namespace Semantic
           }
           return t;
         case "or":
+          if (t != BuiltInType.Boolean)
+          {
+            new Error($"Can not use keyword \"or\" with {t}", l, this.reader).Print(this.io);
+            return BuiltInType.Error;
+          }
+          return t;
         case "+": return t;
         default: return BuiltInType.Error;
       }
@@ -630,7 +657,8 @@ namespace Semantic
     }
     private BuiltInType HandleDifferentTypeAndOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 == BuiltInType.Boolean) return t2; // true and "ok" -> String
+      // Only allow for 2 booleans
+      // if (t1 == BuiltInType.Boolean) return t2; // true and "ok" -> String
       new OperationError("and", t1, t2, l, this.reader).Print(this.io);
       return BuiltInType.Error;
     }
@@ -649,7 +677,8 @@ namespace Semantic
     }
     private BuiltInType HandleDifferentTypeOrOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 == BuiltInType.Boolean) return t2; // true or "ok" -> String
+      // Only allow for 2 Booleans
+      // if (t1 == BuiltInType.Boolean) return t2; // true or "ok" -> String
       new OperationError("or", t1, t2, l, this.reader).Print(this.io);
       return BuiltInType.Error;
     }
