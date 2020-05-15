@@ -280,7 +280,7 @@ namespace Semantic
 
       // Initialize a string variable for the result string.
       // Can already alloc enough memory for the brackets and commas
-      CodeGeneration.Variable v = InitializeTempVariable(BuiltInType.String, "2"); // [ and null
+      CodeGeneration.Variable v = InitializeTempVariable(BuiltInType.String, "3"); // [ and null and ]
       // Free the commas variable
       // this.varHandler.FreeTempVariable(commas);
       // Initialize a string variable for [
@@ -341,6 +341,7 @@ namespace Semantic
     {
       if (v.Type == BuiltInType.String) return $"strlen({v.Id})";
       else if (v.Type == BuiltInType.IntegerArray) return $"sizeof(int)*{v.Size.Id}";
+      else if (v.Type == BuiltInType.StringArray) return $"sizeof(char)*{v.Size.Id}";
       return $"sizeof({v.Id})";
     }
     /*private void HandleStringAndStringAddition(CodeGeneration.Variable v1, CodeGeneration.Variable v2)
@@ -621,8 +622,20 @@ namespace Semantic
         CodeGeneration.Variable exprVar = this.stack.Pop();
         HandleIndexErrors(array, exprVar);
         this.varHandler.FreeTempVariable(exprVar);
+        // This should be different for left-hand side and right-hand sides
+        // For left hand sides, this is needed
+        // For rhs tho, can assign to temp var and return that
         // Make undeclared var
-        variable = new CodeGeneration.Variable($"{array.Id}[{exprVar.Id}]", ElementTypeOfArray(v.Type));
+        if (v.LHS)
+        {
+          variable = new CodeGeneration.Variable($"{array.Id}[{exprVar.Id}]", ElementTypeOfArray(v.Type));
+        }
+        else
+        {
+          CodeGeneration.Variable temp = InitializeTempVariable(ElementTypeOfArray(v.Type));
+          this.writer.Write($"{temp.Id}={array.Id}[{exprVar.Id}];\n");
+          variable = temp;
+        }
       }
       else variable = this.varHandler.GetVariable(v.Name, v.Type);
 
@@ -789,31 +802,74 @@ namespace Semantic
         foreach(Lexer.Token t in s.Identifiers) InitializeDeclaredVariable(s.BuiltInType, t.Value, size);
       }
     }
+    private void InitializeStringArray(CodeGeneration.Variable arr)
+    {
+      // Create a new integer array variable, that holds the lengths of strings
+      CodeGeneration.Variable lengths = InitializeTempVariable(BuiltInType.IntegerArray, $"sizeof(int)*{arr.Size.Id}");
+      arr.SetLengths(lengths);
+      // Create a temporary integer variable
+      CodeGeneration.Variable i = InitializeTempVariable(BuiltInType.Integer);
+      this.writer.Write($"{i.Id}=0;\n");
+      string start = this.labelGenerator.GenerateLabel();
+      string cont = this.labelGenerator.GenerateLabel();
+      this.writer.Write($"{start}:;\n");
+      this.writer.Write($"if({i.Id}=={arr.Size.Id}) goto {cont};\n");
+      this.writer.Write($"{arr.Id}[{i.Id}]='\\0';\n");
+      this.writer.Write($"{lengths.Id}[{i.Id}]=1;\n");
+      this.writer.Write($"{i.Id}={i.Id}+1;\n");
+      this.writer.Write($"goto {start};\n");
+      this.writer.Write($"{cont}:;\n");
+      // Free the temporary i variable
+      this.varHandler.FreeTempVariable(i);
+    }
     private void InitializeDeclaredVariable(BuiltInType type, string originalId, CodeGeneration.Variable size)
     {
+      /*
+      // The declaration. Add the StringLengths (lengths) variable to StringArray variable
+      // Use SetSize method for it, it will make the lengths var IsArraySize
+      char* a = malloc(3); // Init with 3 null characters
+      int* lengths = malloc(3*sizeof(int));
+      int i = 0;
+      L100:;
+      if (i==3) goto L89;
+      a[i] = '\0';
+      lengths[i] = 1;
+      i = i + 1;
+      goto L100;
+
+      L89:;
+      */
       CodeGeneration.Variable v = this.varHandler.GetFreeVariable(type);
       if (v.Id == null)
       {
         // declare new
         v = this.varHandler.DeclareVariable(type, originalId);
         this.writer.Write($"{TypeInC(type)} ");
-        if (IsArray(type))
+        if (type == BuiltInType.IntegerArray)
         {
-          // size.IsArraySize = true;
-          // v.Size = size.Id;
           v.SetSize(size);
           MallocMemory(v.Id, SizeOf(v));
+        }
+        else if (type == BuiltInType.StringArray)
+        {
+          v.SetSize(size);
+          MallocMemory(v.Id, SizeOf(v));
+          InitializeStringArray(v);
         }
         else this.writer.Write($"{v.Id};\n");
       }
       else
       {
-        if (IsArray(v.Type))
+        if (type == BuiltInType.IntegerArray)
         {
-          // size.IsArraySize = true;
-          // v.Size = size.Id;
           v.SetSize(size);
           ReallocMemory(v.Id, SizeOf(v));
+        }
+        else if (type == BuiltInType.StringArray)
+        {
+          v.SetSize(size);
+          ReallocMemory(v.Id, SizeOf(v));
+          InitializeStringArray(v);
         }
         v.OriginalId = originalId;
       }
@@ -837,7 +893,11 @@ namespace Semantic
         foreach(BuiltInType t in s.Arguments.Types)
         {
           CodeGeneration.Variable v = this.stack.Pop();
-          format += CreateFormatString(t);
+          if (v.Type == BuiltInType.IntegerArray)
+          {
+            v = ConvertIntegerArrayToString(v);
+          }
+          format += CreateFormatString(v.Type);
           varString += $",{v.Id}";
           this.varHandler.FreeTempVariable(v);
         }
@@ -892,6 +952,7 @@ namespace Semantic
       switch(t)
       {
         case BuiltInType.Integer: return "int";
+        case BuiltInType.StringArray:
         case BuiltInType.String: return "char*";
         case BuiltInType.IntegerArray: return "int*";
         default: return "";

@@ -13,6 +13,7 @@ namespace Nodes
     // Location of Name
     public Location Location { get; set; }
     public BuiltInType Type { get; set; }
+    public bool LHS { get; set; } // Left-hand side
     public Variable()
     {
       this.Size = false;
@@ -20,6 +21,7 @@ namespace Nodes
       this.IntegerExpression = null;
       this.SizeLocation = null;
       this.Type = BuiltInType.Error;
+      this.LHS = false;
     }
     public BuiltInType Visit(Visitor v)
     {

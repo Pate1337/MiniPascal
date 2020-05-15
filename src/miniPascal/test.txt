@@ -70,7 +70,18 @@ end;
 *}
 
 begin 
-var a : integer;
+var s : array[4] of string;
+{*var a : array[10] of integer;
+a[0] := 1;
+a[1] := 2;
+a[2] := 0;
+a[5] := 25;
+a[7] := 9;
+a[2] := a[0]+a[1]; 
+writeln("a[2+3]: ", a[2+3]);
+writeln("a[1]: ", a[1]);
+writeln("a[2]: ", a[2]);*}
+{*var a : integer;
 a := 5;
 var b : integer;
 b := 4;
@@ -105,6 +116,12 @@ writeln("Size of closed expression array: ", (t+y).size);
 writeln("Size of closed expression string: ", ("jees"+"box").size);
 writeln(c);
 writeln("Ok, please work: ", "the array l printed: " + l);
+var paska : array[3] of integer;
+paska[0] := 0;
+paska[1] := 0;
+paska[2] := 0;
+paska[1] := 1000;
+writeln(paska);*}
 {*
 // t[5] := 7;
 y := t;

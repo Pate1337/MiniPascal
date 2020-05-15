@@ -416,6 +416,7 @@ namespace Semantic
     public void VisitAssignmentStatement(AssignmentStatement s)
     {
       BuiltInType varType = s.Variable.Visit(this);
+      s.Variable.LHS = true;
       if (varType != BuiltInType.Error)
       {
         BuiltInType exprType = s.Expression.Visit(this);
