@@ -11,12 +11,14 @@ namespace CodeGeneration
     private ProgramNode ast;
     private IOHandler io;
     private Visitor visitor;
-    public Generator(FileWriter writer, ProgramNode ast, IOHandler io, Visitor visitor)
+    private FunctionCreator fc;
+    public Generator(FileWriter writer, ProgramNode ast, IOHandler io, Visitor visitor, FunctionCreator fc)
     {
       this.writer = writer;
       this.ast = ast;
       this.io = io;
       this.visitor = visitor;
+      this.fc = fc;
     }
     public void GenerateCode()
     {
@@ -24,13 +26,13 @@ namespace CodeGeneration
       this.writer.WriteLine("#include <stdlib.h>");
       this.writer.WriteLine("#include <string.h>");
       this.writer.WriteLine("#include <math.h>");
+      this.fc.WriteFunctions(this.writer);
       this.writer.WriteLine("int main() {");
       this.visitor.VisitProgram(this.ast);
-      // this.writer.WriteLine("printf(\"Hello, World!\\n\");");
       this.writer.WriteLine("goto END;");
-      this.writer.WriteLine("ERROR:");
-      this.writer.WriteLine("printf(\"Error occurred!\\n\");");
-      this.writer.WriteLine("END:");
+      this.writer.WriteLine("ERROR:;");
+      this.writer.WriteLine("printf(\"Error occurred! Stopped execution.\\n\");");
+      this.writer.WriteLine("END:;");
       this.writer.WriteLine("return 0;");
       this.writer.WriteLine("}");
       this.writer.Close();

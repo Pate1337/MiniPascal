@@ -14,14 +14,16 @@ namespace Semantic
     private BuiltInType expectedReturnType;
     private bool allPathsReturnValue;
     private List<Warning> warnings;
+    private CodeGeneration.FunctionCreator fg;
 
-    public TypeCheckVisitor(IOHandler io, Reader reader)
+    public TypeCheckVisitor(IOHandler io, Reader reader, CodeGeneration.FunctionCreator fg)
     {
       this.io = io;
       this.Table = new SymbolTableHandler(io, reader);
       this.reader = reader;
       this.allPathsReturnValue = false;
       this.warnings = new List<Warning>();
+      this.fg = fg;
     }
     public void VisitProgram(ProgramNode p)
     {
@@ -61,6 +63,7 @@ namespace Semantic
           this.Table.AddEntry(t.Value, new SymbolTableEntry(t.Value, type), t.Location);
         }
       }
+      if (type == BuiltInType.StringArray) this.fg.StringArrayInitialization = true;
       s.BuiltInType = type;
       // else there has not been an IntegerExpression inside []. No need to error again.
     }
@@ -161,6 +164,8 @@ namespace Semantic
         new Error($"Expected \"[\" Integer \"]\", instead got \"[\" {exprType} \"]\".", t.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
+      // Tell the FunctionCreator to write NegativeIndex function
+      this.fg.NegativeIndex = true;
       return t.Type;
     }
     public BuiltInType VisitSimpleType(SimpleType t)
@@ -293,7 +298,10 @@ namespace Semantic
         {
           case BuiltInType.IntegerArray: arrayElementType = BuiltInType.Integer; break;
           case BuiltInType.RealArray: arrayElementType = BuiltInType.Real; break;
-          case BuiltInType.StringArray: arrayElementType = BuiltInType.String; break;
+          case BuiltInType.StringArray:
+            arrayElementType = BuiltInType.String;
+            this.fg.GetElementFromStringArray = true;
+            break;
           case BuiltInType.BooleanArray: arrayElementType = BuiltInType.Boolean; break;
           default:
             new Error($"Variable {v.Name} is not an array", v.Location, this.reader).Print(this.io);
@@ -312,13 +320,12 @@ namespace Semantic
         // If the size of variable is called. ( var[1].size not allowed, only for strings )
         if (v.Size)
         {
-          System.Console.WriteLine("arrayElementType = " + arrayElementType);
           if (arrayElementType != BuiltInType.String) return HandleIllegalSizeCall(arrayElementType, v.SizeLocation);
           return BuiltInType.Integer;
         }
-
+        // Tell the FunctionCreator to write IndexInBounds function to the C-file
+        this.fg.IndexInBounds = true;
         // If everything ok, return the type of which the array consists of
-        //v.Type = arrayElementType;
         return arrayElementType;
       }
       if (v.Size)
@@ -422,6 +429,14 @@ namespace Semantic
         BuiltInType exprType = s.Expression.Visit(this);
         if (exprType != BuiltInType.Error)
         {
+          // Tell the function creator to write function AssignStringToStringArray
+          if (s.Variable.Type == BuiltInType.StringArray && exprType == BuiltInType.String) this.fg.AssignStringToStringArray = true;
+          else if (s.Variable.Type == BuiltInType.StringArray && exprType == BuiltInType.StringArray)
+          {
+            this.fg.CopyCharPointer = true;
+            this.fg.CopyIntegerPointer = true;
+          }
+          else if (s.Variable.Type == BuiltInType.IntegerArray && exprType == BuiltInType.IntegerArray) this.fg.CopyIntegerPointer = true;
           string id = s.Variable.Name;
           if (varType != exprType) new Error($"Can not assign {exprType} into a {varType} variable {id}.", s.Location, this.reader).Print(this.io);
           else this.Table.Assign(id, s.Location); // Does the checks for illegal assignments

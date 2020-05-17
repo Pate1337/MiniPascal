@@ -71,7 +71,23 @@ end;
 
 begin 
 var s : array[4] of string;
-{*var a : array[10] of integer;
+s[0] := "Moro vaan";
+s[1] := "Toka";
+s[2] := "Kolmas";
+s[3] := "Vika";
+var b : array[0] of string;
+b := s;
+s[2] := "Uuutta paskaa";
+writeln(s.size+b.size);
+writeln(s[0]);
+writeln(s[1]);
+writeln(s[2]);
+writeln(s[3]);
+writeln(b[0]);
+writeln(b[1]);
+writeln(b[2]);
+writeln(b[3]);
+var a : array[10] of integer;
 a[0] := 1;
 a[1] := 2;
 a[2] := 0;
@@ -80,7 +96,7 @@ a[7] := 9;
 a[2] := a[0]+a[1]; 
 writeln("a[2+3]: ", a[2+3]);
 writeln("a[1]: ", a[1]);
-writeln("a[2]: ", a[2]);*}
+writeln("a[2]: ", a[2]);
 {*var a : integer;
 a := 5;
 var b : integer;

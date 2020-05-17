@@ -31,5 +31,6 @@ lopuksi suorittaa käännetyn koodin.
 11.05.2020 | 8h | Tyyppimuunnoksia stringeiksi.
 13.05.2020 | 8h | Size-metodi toteutettu string ja talukko tyypeille.
 14.05.2020 | 6h | Kokonaisluku taulukko saadaan muutetuksi string-tyyppiseksi esitykseksi.
-
+16.05.2020 | 8h | String-taulukot toteutettu.
+17.05.2020 | 8h | Koodin refaktorintia, kun selvisi, että funktioiden käyttö C-koodissa sallittua.
 BUGIT:

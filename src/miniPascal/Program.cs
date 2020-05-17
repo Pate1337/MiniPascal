@@ -23,14 +23,16 @@ namespace miniPascal
                 PrintVisitor visitor = new PrintVisitor(io);
                 visitor.VisitProgram(ast);
 
-                TypeCheckVisitor v = new TypeCheckVisitor(io, reader);
-                v.VisitProgram(ast);
-
                 string currPath = System.AppDomain.CurrentDomain.BaseDirectory;
                 FileWriter writer = new FileWriter($"{currPath}/test.c");
 
+                FunctionCreator fg = new FunctionCreator();
+                TypeCheckVisitor v = new TypeCheckVisitor(io, reader, fg);
+                v.VisitProgram(ast);
+
+
                 GeneratorVisitor gv = new GeneratorVisitor(io, reader, writer);
-                Generator generator = new Generator(writer, ast, io, gv);
+                Generator generator = new Generator(writer, ast, io, gv, fg);
                 generator.GenerateCode();
                 generator.CreateExecutable();
                 generator.RunExecutable();

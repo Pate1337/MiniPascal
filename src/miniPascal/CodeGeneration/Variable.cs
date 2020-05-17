@@ -9,11 +9,43 @@ namespace CodeGeneration
     public Semantic.BuiltInType Type { get; set; }
     public bool IsArrayElement { get; set; }
     public bool IsArraySize { get; set; }
-    // public string Size { get; set; }
     public Variable Size { get; set; } // For integer, real and boolean arrays
     public Variable Lengths { get; set; } // For StringArrays
-    // public List<int> stringLengths { get; set; }
+    public Variable ElementOf { get; set; } // An array variable
+    public string Index { get; set; }
 
+    /*
+    * Creates an empty variable
+    */
+    public Variable()
+    {
+      this.Id = null;
+      this.OriginalId = null;
+      this.Type = Semantic.BuiltInType.Error;
+      this.IsArrayElement = false;
+      this.IsArraySize = false;
+      this.Index = null;
+    }
+
+    /*
+    * Creates an ArrayElement variable
+    */
+    public Variable(string id, Semantic.BuiltInType type, Variable arr, string index)
+    {
+      this.Id = id;
+      this.OriginalId = null;
+      this.Type = type;
+      this.IsArrayElement = true;
+      this.IsArraySize = false;
+      this.ElementOf = arr;
+      this.Index = index;
+      this.Size = new Variable();
+      this.Lengths = new Variable();
+    }
+
+    /*
+    * Also creates an ArrayElement variable
+    */
     public Variable(string id, Semantic.BuiltInType type)
     {
       this.Id = id;
@@ -21,11 +53,15 @@ namespace CodeGeneration
       this.Type = type;
       this.IsArrayElement = true;
       this.IsArraySize = false;
-      // this.Size = null;
-      // this.Size = new Variable(null, null, Semantic.BuiltInType.Error);
-      // this.stringLengths = new List<int>();
+      this.Index = null;
+      this.Size = new Variable();
+      this.Lengths = new Variable();
+      this.ElementOf = new Variable();
     }
 
+    /*
+    * Creates a variable that has been declared in MiniPascal.
+    */
     public Variable(string id, string originalId, Semantic.BuiltInType type)
     {
       this.Id = id;
@@ -33,9 +69,10 @@ namespace CodeGeneration
       this.Type = type;
       this.IsArrayElement = false;
       this.IsArraySize = false;
-      // this.stringLengths = new List<int>();
-      // this.Size = null;
-      // this.Size = new Variable(null, null, Semantic.BuiltInType.Error);
+      this.Index = null;
+      this.Size = new Variable();
+      this.Lengths = new Variable();
+      this.ElementOf = new Variable();
     }
     public void SetSize(Variable v)
     {
