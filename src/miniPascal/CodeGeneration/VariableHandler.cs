@@ -120,7 +120,6 @@ namespace CodeGeneration
       v.IsArraySize = false;
       v.IsArrayElement = false;
       v.Index = null;
-      System.Console.WriteLine($"Freeing variable {v.Id}");
       // TODO: Size, Lengths and ElementOf would be nice to also null
       switch(v.Type)
       {

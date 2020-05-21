@@ -20,11 +20,13 @@ namespace miniPascal
                 Reader reader = new FileReader(fullPath);
                 Parser p = new Parser(io, reader);
                 Nodes.ProgramNode ast = p.Parse();
+                
+                if (argHandler.PrintAst)
+                {
+                    PrintVisitor visitor = new PrintVisitor(io);
+                    visitor.VisitProgram(ast);
+                }
 
-                PrintVisitor visitor = new PrintVisitor(io);
-                visitor.VisitProgram(ast);
-
-                string currPath = System.AppDomain.CurrentDomain.BaseDirectory;
                 FileWriter writer = new FileWriter(fullPath);
 
                 FunctionCreator fg = new FunctionCreator();

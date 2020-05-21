@@ -84,6 +84,11 @@ writeln(b);
 c := b + a;
 // After concat the array is correct. Either the assignment or write fails!
 writeln("Toimisko tää: ", c);
+writeln("Entä tää " + c);
+c[2] := "UUs arvo c[2]";
+writeln(c.size);
+writeln(c[0].size);
+writeln("ok".size);
 
 {*var a : array[4] of integer;
 a[0] := 1;

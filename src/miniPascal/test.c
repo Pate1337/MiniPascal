@@ -81,6 +81,13 @@ char* s=malloc(strlen(value)+1);
 strcpy(s,value);
 return s;
 }
+char* ConcatStrings(char* s1,char* s2){
+size_t l1=strlen(s1);
+char* r=malloc(l1+strlen(s2)+1);
+strcpy(r,s1);
+strcpy(r+l1,s2);
+return r;
+}
 char* ConcatStringArrays(char* a1,char* a2,int s1,int s2,int* l1,int* l2){
 int tl1=SizeOfStringArrayInBytes(s1,a1,l1);
 int tl2=SizeOfStringArrayInBytes(s2,a2,l2);
@@ -206,5 +213,25 @@ free(s2);
 s2=MakeStringVar("Toimisko tää: ");
 char* s5=StringArrayToString(s3,i5,i6);
 printf("%s%s\n",s2,s5);
+free(s5);
+s5=MakeStringVar("Entä tää ");
+free(s2);
+s2=StringArrayToString(s3,i5,i6);
+char* s6=ConcatStrings(s5,s2);
+printf("%s\n",s6);
+free(s6);
+s6=MakeStringVar("UUs arvo c[2]");
+i0=2;
+IndexInBounds(i0,i5);
+AssignStringToStringArray(&s3,i0,s6,i5,i6);
+printf("%d\n",i5);
+i0=0;
+IndexInBounds(i0,i5);
+free(s6);
+s6=GetElementFromStringArray(s3,i0,i6);
+i0=(int)(strlen(s6));
+printf("%d\n",i0);
+i0=2;
+printf("%d\n",i0);
 return 0;
 }

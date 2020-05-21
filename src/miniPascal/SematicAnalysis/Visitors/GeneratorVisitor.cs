@@ -182,9 +182,10 @@ namespace Semantic
       {
         switch(v2.Type)
         {
-          case BuiltInType.String: HandleArrayAddition(v1, v2); break;
+          case BuiltInType.String:
+          case BuiltInType.IntegerArray:
+          case BuiltInType.StringArray: HandleArrayAddition(v1, v2); break;
           case BuiltInType.Integer: HandleStringAndIntegerAddition(v1, v2); break;
-          case BuiltInType.IntegerArray: HandleArrayAddition(v1, v2); break;
           /*case BuiltInType.Real:
           case BuiltInType.Boolean:*/
           default: break;
@@ -195,9 +196,10 @@ namespace Semantic
         // v2.Type is String in this case
         switch(v1.Type)
         {
-          case BuiltInType.String: HandleArrayAddition(v1, v2); break;
+          case BuiltInType.String:
+          case BuiltInType.IntegerArray:
+          case BuiltInType.StringArray: HandleArrayAddition(v1, v2); break;
           case BuiltInType.Integer: HandleStringAndIntegerAddition(v1, v2); break;
-          case BuiltInType.IntegerArray: HandleArrayAddition(v1, v2); break;
           /*case BuiltInType.Real:
           case BuiltInType.Boolean:*/
           default: break;
@@ -212,7 +214,6 @@ namespace Semantic
     {
       bool array = IsArray(type);
       CodeGeneration.Variable v = this.varHandler.GetFreeVariable(type);
-      System.Console.WriteLine($"Got the free var {v.Id}");
       if (v.Id == null)
       {
         // declare new
@@ -226,7 +227,7 @@ namespace Semantic
       else if (type == BuiltInType.String || array)
       {
         // When ever assigning a String or array to an existing variable, free the memory
-        this.writer.WriteLine($"free({v.Id});");
+        if (!v.IsArrayElement) this.writer.WriteLine($"free({v.Id});"); // Array elements are not mallocd!
         if (size != null) MallocMemory(v.Id, size);
         // else this.writer.Write($"free({v.Id});\n");
       }
@@ -346,46 +347,23 @@ namespace Semantic
         this.stack.Push(res);
         return res;
       }
-      /*else if (v1.Type == BuiltInType.StringArray || v2.Type == BuiltInType.StringArray)
+      else if (v1.Type == BuiltInType.StringArray || v2.Type == BuiltInType.StringArray)
       {
         // Other one is string
         CodeGeneration.Variable strArr = v1;
         if (v1.Type == BuiltInType.String) strArr = v2;
         CodeGeneration.Variable temp = ConvertStringArrayToString(strArr);
-        if (v1.Type == BuiltInType.String) HandleArrayAddition(v1, temp);
-        else HandleArrayAddition(temp, v2);
+        if (v1.Type == BuiltInType.String) res = HandleArrayAddition(v1, temp);
+        else res = HandleArrayAddition(temp, v2);
         this.varHandler.FreeTempVariable(v1);
         this.varHandler.FreeTempVariable(v2);
-        return this.stack.Peek();
-      }*/
+        return res;
+      }
       else
       {
         res = new CodeGeneration.Variable(null, null, BuiltInType.Error);
         return res;
       }
-      
-     /* if (res.Type == BuiltInType.String)
-      {
-        // Both are strings is this case
-        this.writer.Write($"sprintf({res.Id},\"%s\",{v1.Id});\n");
-        this.writer.Write($"sprintf({res.Id}+{v1Size},\"%s\",{v2.Id});\n");
-      }
-      else
-      {
-        // Copy the memory from v1.Id to res
-        CopyMemory(res.Id, v1.Id, v1Size);
-        CopyMemory($"{res.Id}+{v1.Size.Id}", v2.Id, $"{v2Size}{nullChar}");
-        // Copy the memory from v2.Id to res + strlen(v2.Id)
-        // if (v1.Type != BuiltInType.String) CopyMemory($"{res.Id}+{v1.Size.Id}", v2.Id, $"{v2Size}{nullChar}");
-        // else CopyMemory($"{res.Id}+{v1Size}", v2.Id, $"{v2Size}{nullChar}");
-      }
-
-      // Free v1 and v2 (FreeTempVariable only frees them if strings)
-      this.varHandler.FreeTempVariable(v1);
-      this.varHandler.FreeTempVariable(v2);
-      // Push res to stack
-      this.stack.Push(res);
-      return res;*/
     }
     private CodeGeneration.Variable ConvertStringArrayToString(CodeGeneration.Variable sa)
     {
@@ -806,7 +784,6 @@ namespace Semantic
       if (src.Size.Id != null) this.writer.Write($"{dest.Size.Id}={src.Size.Id};\n"); // Not set for Lengths arrays
       if (src.Type == BuiltInType.StringArray)
       {
-        System.Console.WriteLine("Also copying the Lengths");
         CopyArray(dest.Lengths, src.Lengths, src.Size.Id);
       }
     }
