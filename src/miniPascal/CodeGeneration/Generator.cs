@@ -12,6 +12,9 @@ namespace CodeGeneration
     private IOHandler io;
     private Visitor visitor;
     private FunctionCreator fc;
+    private string FileToCompile;
+    private string PathOfExe;
+    private string NameOfExe;
     public Generator(FileWriter writer, ProgramNode ast, IOHandler io, Visitor visitor, FunctionCreator fc)
     {
       this.writer = writer;
@@ -19,6 +22,9 @@ namespace CodeGeneration
       this.io = io;
       this.visitor = visitor;
       this.fc = fc;
+      this.FileToCompile = this.writer.FileName;
+      this.PathOfExe = System.IO.Path.ChangeExtension(this.FileToCompile, ".exe");
+      this.NameOfExe = System.IO.Path.GetFileName(this.PathOfExe);
     }
     public void GenerateCode()
     {
@@ -29,10 +35,10 @@ namespace CodeGeneration
       this.fc.WriteFunctions(this.writer);
       this.writer.WriteLine("int main() {");
       this.visitor.VisitProgram(this.ast);
-      this.writer.WriteLine("goto END;");
+      /*this.writer.WriteLine("goto END;");
       this.writer.WriteLine("ERROR:;");
       this.writer.WriteLine("printf(\"Error occurred! Stopped execution.\\n\");");
-      this.writer.WriteLine("END:;");
+      this.writer.WriteLine("END:;");*/
       this.writer.WriteLine("return 0;");
       this.writer.WriteLine("}");
       this.writer.Close();
@@ -43,8 +49,7 @@ namespace CodeGeneration
       System.Diagnostics.Process pProcess = new System.Diagnostics.Process();
       // TODO: On windows this is different
       pProcess.StartInfo.FileName = @"/usr/bin/gcc";
-      string currPath = System.AppDomain.CurrentDomain.BaseDirectory;
-      pProcess.StartInfo.Arguments = $"-Wall {this.writer.FileName} -o {currPath}/test.exe"; //argument
+      pProcess.StartInfo.Arguments = $"-Wall {this.FileToCompile} -o {this.PathOfExe}"; //argument
 
       // Redirect all the output and errors from compilation of C program
       pProcess.StartInfo.UseShellExecute = false;
@@ -61,27 +66,13 @@ namespace CodeGeneration
       // pProcess.BeginErrorReadLine();
 
       while (!pProcess.WaitForExit(1000));
-      int code = 5;
-      try
-      {
-        code = pProcess.ExitCode;
-      }
-      catch (System.Exception)
-      {
-        code = 1;
-      }
-      if (code == 0) System.Console.WriteLine("C compiled succesfully!");
-      else
-      {
-        System.Console.WriteLine("Error compiling C!");
-        System.Console.WriteLine("Errors: " + eOut);
-      }
+      HandleErrors(pProcess, "c", eOut);
     }
     public void RunExecutable()
     {
-      // TODO: Add check that test.exe exists
+      if (!Utils.File.Exists(this.NameOfExe)) throw new Errors.Error($"Could not execute file {this.NameOfExe} because it does not exist!");
       System.Diagnostics.Process pProcess = new System.Diagnostics.Process();
-      pProcess.StartInfo.FileName = @"test.exe";
+      pProcess.StartInfo.FileName = this.NameOfExe;
       pProcess.StartInfo.UseShellExecute = false;
       pProcess.StartInfo.RedirectStandardOutput = true;
       pProcess.Start();
@@ -91,6 +82,31 @@ namespace CodeGeneration
       System.Console.Write(output);
 
       while (!pProcess.WaitForExit(1000));
+      HandleErrors(pProcess, "e", null);
+    }
+    private void HandleErrors(System.Diagnostics.Process p, string t, string e)
+    {
+      int code = 5;
+      try
+      {
+        code = p.ExitCode;
+      }
+      catch (System.Exception)
+      {
+        code = 100;
+      }
+      string gccErrors = e != null ? $"\ngcc returned errors:\n{e}" : "";
+      switch(code)
+      {
+        case 0: break; // No error
+        case (int)ErrorCode.NegativeIndex:
+          throw new Errors.CompileError(t, $"Negative indexes are not allowed!{gccErrors}");
+        case (int)ErrorCode.OutOfBoundsIndex:
+          throw new Errors.CompileError(t, $"Index was out of bounds!{gccErrors}");
+        case 100: throw new Errors.CompileError(t, "Could not get the exitCode of process...");
+        default:
+          throw new Errors.CompileError(t, $"The process that executes {(t == "e" ? this.NameOfExe : "The .c file")} returned error code {code}!{gccErrors}");
+      }
     }
   }
 }

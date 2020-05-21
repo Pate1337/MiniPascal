@@ -16,7 +16,7 @@ namespace Errors
     public override string ToString()
     {
       string arrow = this.FormArrow();
-      return this.Type + " (line " + this.Location.Line + ", column " + this.Location.Column + "): " + this.message + "\n\n\t" + this.lineContent + "\n\t" + arrow + "\n";
+      return this.Type + " (line " + this.Location.Line + ", column " + this.Location.Column + "): " + this.message + "[" + this.Location.File + "]\n\n\t" + this.lineContent + "\n\t" + arrow + "\n";
     }
   }
 }

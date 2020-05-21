@@ -120,21 +120,22 @@ namespace CodeGeneration
       v.IsArraySize = false;
       v.IsArrayElement = false;
       v.Index = null;
+      System.Console.WriteLine($"Freeing variable {v.Id}");
       // TODO: Size, Lengths and ElementOf would be nice to also null
       switch(v.Type)
       {
         case Semantic.BuiltInType.Integer:
           if (!AlreadyFree(v, this.freeIntegers)) this.freeIntegers.Push(v);
-          FreeVariable(v.ElementOf);
+          if (v.ElementOf.Id != null) FreeVariable(v.ElementOf);
           break;
         case Semantic.BuiltInType.String:
           if (!AlreadyFree(v, this.freeStrings)) this.freeStrings.Push(v);
-          FreeVariable(v.ElementOf);
+          if (v.ElementOf.Id != null) FreeVariable(v.ElementOf);
           break;
         case Semantic.BuiltInType.IntegerArray:
           if (!AlreadyFree(v, this.freeIntegerArrays)) this.freeIntegerArrays.Push(v);
           // Also free the Size variable
-          FreeVariable(v.Size);
+          if (v.Size.Id != null) FreeVariable(v.Size);
           break;
         case Semantic.BuiltInType.StringArray:
           if (!AlreadyFree(v, this.freeStringArrays)) this.freeStringArrays.Push(v);

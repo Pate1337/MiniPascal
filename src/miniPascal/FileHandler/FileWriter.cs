@@ -11,8 +11,14 @@ namespace FileHandler
 
     public FileWriter(string file)
     {
-      this.FileName = file;
-      this.writer = Utils.File.CreateStreamWriter(file);
+      // System.Console.WriteLine("Changed extension: " + CreatePathForDotC(file));
+      this.FileName = CreatePathForDotC(file);
+      this.writer = Utils.File.CreateStreamWriter(this.FileName);
+    }
+    private string CreatePathForDotC(string file)
+    {
+      return Path.ChangeExtension(file, ".c");
+      // fullPath.Replace(argHandler.FileName, $"{argHandler.FileName}.c")
     }
     public void WriteLine(string text)
     {

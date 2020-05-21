@@ -262,6 +262,7 @@ namespace Semantic
         return BuiltInType.Integer;
         // return HandleIllegalSizeCall(BuiltInType.String, l.SizeLocation);
       }
+      this.fg.MakeStringVar = true;
       return BuiltInType.String;
     }
     public BuiltInType VisitRealLiteral(RealLiteral l)
@@ -495,7 +496,15 @@ namespace Semantic
     }
     public void VisitWriteStatement(WriteStatement s)
     {
-      if (s.Arguments != null) s.Arguments.Visit(this);
+      if (s.Arguments != null)
+      {
+        s.Arguments.Visit(this);
+        foreach(BuiltInType t in s.Arguments.Types)
+        {
+          if (t == BuiltInType.IntegerArray) this.fg.IntegerArrayToString = true;
+          else if (t == BuiltInType.StringArray) this.fg.StringArrayToString = true;
+        }
+      }
     }
     private bool ExpressionCanBeUsedAsReferenceParameter(Expression e)
     {
@@ -638,6 +647,13 @@ namespace Semantic
     }
     private BuiltInType HandlePlusOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
+      if (t1 == BuiltInType.String && t2 == BuiltInType.String) this.fg.ConcatStrings = true;
+      if (t1 == BuiltInType.IntegerArray && t2 == BuiltInType.IntegerArray) this.fg.ConcatIntegerArrays = true;
+      if (t1 == BuiltInType.StringArray && t2 == BuiltInType.StringArray)
+      {
+        this.fg.CountNewOffsets = true;
+        this.fg.ConcatStringArrays = true;
+      }
       if (t1 != t2) return HandleDifferentTypePlusOperation(t1, t2, l);
       if (t1 != BuiltInType.Boolean) return t1;
       new OperationError("+", t1, t2, l, this.reader).Print(this.io);
@@ -680,7 +696,13 @@ namespace Semantic
     }
     private BuiltInType HandleDifferentTypePlusOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      if (t1 == BuiltInType.String || t2 == BuiltInType.String) return BuiltInType.String; // Turns Type to String
+      if (t1 == BuiltInType.String || t2 == BuiltInType.String)
+      {
+        this.fg.ConcatStrings = true;
+        if (t1 == BuiltInType.Integer || t2 == BuiltInType.Integer) this.fg.IntegerToStringWithSizeCalc = true;
+        else if (t1 == BuiltInType.IntegerArray || t2 == BuiltInType.IntegerArray) this.fg.IntegerArrayToString = true;
+        return BuiltInType.String; // Turns Type to String
+      }
       // TODO: Handle Real + Integer and Integer + Real
       new OperationError("+", t1, t2, l, this.reader).Print(this.io);
       return BuiltInType.Error;

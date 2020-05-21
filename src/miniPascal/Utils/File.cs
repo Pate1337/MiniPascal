@@ -8,6 +8,15 @@ namespace Utils
     {
       return System.IO.File.Exists(file);
     }
+    /*public static string CurrentPath()
+    {
+      // string currPath = System.AppDomain.CurrentDomain.BaseDirectory;
+      return System.AppDomain.CurrentDomain.BaseDirectory;
+    }*/
+    public static string GetFullPath(string file)
+    {
+      return System.IO.Path.GetFullPath(file);
+    }
     public static System.IO.StreamReader CreateStreamReader(string file)
     {
       try

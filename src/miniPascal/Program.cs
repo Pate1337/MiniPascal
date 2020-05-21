@@ -16,7 +16,8 @@ namespace miniPascal
             {
                 // Tee parserista rivi kerrallaan 
                 ArgHandler argHandler = new ArgHandler(args);
-                Reader reader = new FileReader(argHandler.FileName);
+                string fullPath = Utils.File.GetFullPath(argHandler.FileName);
+                Reader reader = new FileReader(fullPath);
                 Parser p = new Parser(io, reader);
                 Nodes.ProgramNode ast = p.Parse();
 
@@ -24,7 +25,7 @@ namespace miniPascal
                 visitor.VisitProgram(ast);
 
                 string currPath = System.AppDomain.CurrentDomain.BaseDirectory;
-                FileWriter writer = new FileWriter($"{currPath}/test.c");
+                FileWriter writer = new FileWriter(fullPath);
 
                 FunctionCreator fg = new FunctionCreator();
                 TypeCheckVisitor v = new TypeCheckVisitor(io, reader, fg);

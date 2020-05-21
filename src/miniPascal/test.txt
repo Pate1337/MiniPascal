@@ -70,7 +70,34 @@ end;
 *}
 
 begin 
-var s : array[4] of string;
+var a : array[3] of string;
+var b : array[2] of string;
+a[0] := "eka_a";
+a[1] := "toka_a";
+a[2] := "kolmas_a";
+b[0] := "eka_b";
+b[1] := "toka_b";
+var c : array[1] of string;
+writeln("Both arrays before concat: ");
+writeln(a);
+writeln(b);
+c := b + a;
+// After concat the array is correct. Either the assignment or write fails!
+writeln("Toimisko tää: ", c);
+
+{*var a : array[4] of integer;
+a[0] := 1;
+a[1] := 2;
+a[2] := 3;
+a[3] := 4;
+writeln("array as string: " + a); 
+var b : string;
+//var c : string;
+//var d : string;
+b := "ok";
+writeln(b);*}
+
+{*var s : array[4] of string;
 s[0] := "Moro vaan";
 s[1] := "Toka";
 s[2] := "Kolmas";
@@ -97,6 +124,26 @@ a[2] := a[0]+a[1];
 writeln("a[2+3]: ", a[2+3]);
 writeln("a[1]: ", a[1]);
 writeln("a[2]: ", a[2]);
+var joo : string;
+var toine : string;
+joo := a + "moro" + a;
+toine := joo + " ja vähä lisää";
+writeln(joo);
+writeln(toine);
+var jep : array[8] of string;
+jep := s + b;
+
+writeln(jep);
+writeln(jep[0]);
+
+var toinetaulukko : array[2] of integer;
+toinetaulukko[0] := 7;
+toinetaulukko[1] := 88;
+
+a := a + toinetaulukko;
+writeln(a);
+writeln(a.size);*}
+
 {*var a : integer;
 a := 5;
 var b : integer;

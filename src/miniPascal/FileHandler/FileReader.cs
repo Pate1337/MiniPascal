@@ -14,6 +14,7 @@ namespace FileHandler
     public FileReader(string file)
     {
       this.FileName = file;
+      // System.Console.WriteLine("CurrentPath: " + Utils.File.CurrentPath());
       if (!Utils.File.Exists(file)) throw new Error($"File {file} could not be found!");
       this.reader = Utils.File.CreateStreamReader(file);
       this.Lines = new List<string>();

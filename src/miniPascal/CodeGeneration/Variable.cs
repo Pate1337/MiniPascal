@@ -10,7 +10,7 @@ namespace CodeGeneration
     public bool IsArrayElement { get; set; }
     public bool IsArraySize { get; set; }
     public Variable Size { get; set; } // For integer, real and boolean arrays
-    public Variable Lengths { get; set; } // For StringArrays
+    public Variable Lengths { get; set; } // For StringArrays. TODO: Change to Offsets
     public Variable ElementOf { get; set; } // An array variable
     public string Index { get; set; }
 
