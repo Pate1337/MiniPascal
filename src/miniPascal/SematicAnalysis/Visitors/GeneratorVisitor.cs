@@ -4,7 +4,6 @@ using Errors;
 using Nodes;
 using FileHandler;
 using IO;
-// using CodeGeneration;
 
 namespace Semantic
 {
@@ -42,28 +41,13 @@ namespace Semantic
     }
     public void VisitProgram(ProgramNode p)
     {
-      // foreach (Procedure procedure in p.Procedures) procedure.Visit(this);
-      // foreach (Function f in p.Functions) f.Visit(this);
       p.Block.Visit(this);
     }
     public void VisitProcedure(Procedure p)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Block Block { get; set; }
-      public List<Parameter> Parameters { get; set; }
-      // Location of Name
-      public Location Location { get; set; }
-      */
       List<CodeGeneration.Variable> parameters = HandleParameters(p.Parameters);
       this.writer.Write($"int {p.Name}(");
       int i = 1;
-      // TODO: VisitReferencePrmater adds the * in front of the returned Id
-      // TODO: For array elements the call needs to be different!
-      // TODO: For each array, add size parameter.
-      // And for each String array also add Lengths parameter.
-      // Length needs to be int**, size int*
       foreach (CodeGeneration.Variable v in parameters)
       {
         this.writer.Write($"{TypeInC(v.Type)} {v.Id}");
@@ -118,14 +102,6 @@ namespace Semantic
     }
     public void VisitFunction(Function f)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Block Block { get; set; }
-      public Type Type { get; set; }
-      public List<Parameter> Parameters;
-      public Location Location { get; set; }
-      */
       List<CodeGeneration.Variable> parameters = HandleParameters(f.Parameters);
       this.ParameterCheck = true; // disables writing in file
       BuiltInType returnType = f.Type.Visit(this);
@@ -183,14 +159,6 @@ namespace Semantic
     }
     public void VisitDeclaration(Declaration s)
     {
-      /*
-      public string Style { get; set; }
-      // public List<string> Identifiers { get; set; }
-      public List<Token> Identifiers { get; set; }
-      public Type Type { get; set; }
-      public Location Location { get; set; }
-      public BuiltInType BuiltInType { get; set; }
-      */
       // TODO: exprVar could be ArrayElement or Variable
       CodeGeneration.Variable size = new CodeGeneration.Variable(null, null, BuiltInType.Error, this.block);
       if (IsArray(s.BuiltInType))
@@ -200,14 +168,14 @@ namespace Semantic
         CodeGeneration.Variable exprVar = this.stack.Pop(); // IntegerExpression might be null
         string value = exprVar.Id;
         if (exprVar.Id == null) value = "0";
-        IndexNotNegative(exprVar.Id);
+        IndexNotNegative(value);
         foreach(Lexer.Token t in s.Identifiers)
         {
           // Create a new temp variable and make that into a ArraySize var
           // TODO: Make this only for IntegerArrays for now
           size = InitializeTempVariable(BuiltInType.Integer);
           // Assign the value of exprVar into the new temp variable
-          this.writer.Write($"{size.Id}={exprVar.Id};\n");
+          this.writer.Write($"{size.Id}={value};\n");
           InitializeDeclaredVariable(s.BuiltInType, t.Value, size);
         }
         // After everything, free the exprVar
@@ -238,6 +206,11 @@ namespace Semantic
           v.SetSize(size);
           MallocMemory(v.Id, SizeOf(v));
           InitializeStringArray(v);
+        }
+        else if (type == BuiltInType.String)
+        {
+          // Always malloc memory to a new declared string
+          MallocMemory(v.Id, "1");
         }
         else this.writer.Write($"{v.Id};\n");
       }
@@ -276,12 +249,6 @@ namespace Semantic
     }
     public SymbolTableEntry VisitValueParameter(ValueParameter vp)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Type Type { get; set; }
-      public Location Location { get; set; }
-      */
       CodeGeneration.Variable v;
       if (IsArray(vp.Type.Type)) v = HandleArrayTypeParameter(vp);
       else v = new CodeGeneration.Variable(vp.Name, vp.Type.Type, 0);
@@ -290,14 +257,6 @@ namespace Semantic
     }
     private CodeGeneration.Variable HandleArrayTypeParameter(Parameter p)
     {
-      /*
-      if (IsArray(vp.Type))
-      // If the type is ArrayType. Type.IntegerExpression must be a SimpleExpression.
-      // The SimpleExpression.Term
-      // CheckArrayTypeParameter
-      // if type is array type, then the expression value is top of the stack
-      // public Variable(string id, Semantic.BuiltInType type, int block)
-      */
       // During the visit of t.IntegerExpression, there can not be Variables
       this.ParameterCheck = true;
       p.Type.Visit(this); // Value is on top of ParameterValues stack
@@ -431,51 +390,9 @@ namespace Semantic
         // When ever assigning a String or array to an existing variable, free the memory
         if (!v.IsArrayElement) this.writer.WriteLine($"free({v.Id});"); // Array elements are not mallocd!
         if (size != null) MallocMemory(v.Id, size);
-        // else this.writer.Write($"free({v.Id});\n");
       }
       return v;
     }
-    /*
-    private void InitializeDeclaredVariable(BuiltInType type, string originalId, CodeGeneration.Variable size)
-    {
-      // The declaration. Add the StringLengths (lengths) variable to StringArray variable
-      // Use SetSize method for it, it will make the lengths var IsArraySize
-      CodeGeneration.Variable v = this.varHandler.GetFreeVariable(type);
-      if (v.Id == null)
-      {
-        // declare new
-        v = this.varHandler.DeclareVariable(type, originalId);
-        this.writer.Write($"{TypeInC(type)} ");
-        if (type == BuiltInType.IntegerArray)
-        {
-          v.SetSize(size);
-          MallocMemory(v.Id, SizeOf(v));
-        }
-        else if (type == BuiltInType.StringArray)
-        {
-          v.SetSize(size);
-          MallocMemory(v.Id, SizeOf(v));
-          InitializeStringArray(v);
-        }
-        else this.writer.Write($"{v.Id};\n");
-      }
-      else
-      {
-        if (type == BuiltInType.IntegerArray)
-        {
-          v.SetSize(size);
-          ReallocMemory(v.Id, SizeOf(v));
-        }
-        else if (type == BuiltInType.StringArray)
-        {
-          v.SetSize(size);
-          ReallocMemory(v.Id, SizeOf(v));
-          InitializeStringArray(v);
-        }
-        v.OriginalId = originalId;
-      }
-    }
-    */
     private CodeGeneration.Variable HandleArrayAddition(CodeGeneration.Variable v1, CodeGeneration.Variable v2)
     {
       // These are also good string sizes
@@ -488,7 +405,6 @@ namespace Semantic
       CodeGeneration.Variable res;
       if (v1.Type == BuiltInType.String && v2.Type == BuiltInType.String)
       {
-        //res = InitializeTempVariable(BuiltInType.String, $"{v1Size}+{v2Size}{nullChar}");
         res = InitializeTempVariable(BuiltInType.String);
         this.writer.Write($"{res.Id}=ConcatStrings({v1.Id},{v2.Id});\n");
         this.stack.Push(res);
@@ -506,13 +422,6 @@ namespace Semantic
         CodeGeneration.Variable sizeVar = InitializeTempVariable(BuiltInType.Integer);
         this.writer.Write($"{sizeVar.Id}={v1.Size.Id}+{v2.Size.Id};\n");
         res.SetSize(sizeVar);
-        /*CodeGeneration.Variable sizeVar = InitializeTempVariable(BuiltInType.Integer);
-        this.writer.Write($"{sizeVar.Id}={v1.Size.Id}+{v2.Size.Id};\n");
-        res = InitializeTempVariable(BuiltInType.IntegerArray, $"sizeof(int)*{sizeVar.Id}");
-        res.SetSize(sizeVar);
-
-        CopyMemory(res.Id, v1.Id, v1Size);
-        CopyMemory($"{res.Id}+{v1.Size.Id}", v2.Id, $"{v2Size}{nullChar}");*/
         this.varHandler.FreeTempVariable(v1);
         this.varHandler.FreeTempVariable(v2);
         this.stack.Push(res);
@@ -533,19 +442,15 @@ namespace Semantic
       }
       else if (v1.Type == BuiltInType.StringArray && v2.Type == BuiltInType.StringArray)
       {
-        // char* ConcatStringArrays(char* a1,char* a2,int s1,int s2,int* l1,int* l2){
         res = InitializeTempVariable(BuiltInType.StringArray);
         this.writer.Write($"{res.Id}=ConcatStringArrays({v1.Id},{v2.Id},{v1.Size.Id},{v2.Size.Id},{v1.Lengths.Id},{v2.Lengths.Id});\n");
         CodeGeneration.Variable size = InitializeTempVariable(BuiltInType.Integer);
         this.writer.Write($"{size.Id}={v1.Size.Id}+{v2.Size.Id};\n");
         res.SetSize(size);
         CodeGeneration.Variable lengths = InitializeTempVariable(BuiltInType.IntegerArray);
-        // writer.WriteLine("int* ConcatIntegerArrays(int* ia1,int* ia2,int s1,int s2){
         // TODO: CONCAT IS NOT ENOUGH BECAUSE THEY ARE NOW OFFSETS
         this.writer.Write($"{lengths.Id}=CountNewOffsets({res.Id},{v1.Lengths.Id},{v2.Lengths.Id},{v1.Size.Id},{v2.Size.Id});\n");
-        // this.writer.Write($"{lengths.Id}=ConcatIntegerArrays({v1.Lengths.Id},{v2.Lengths.Id},{v1.Size.Id},{v2.Size.Id});\n");
         res.SetLengths(lengths);
-        // res = new CodeGeneration.Variable(null, null, BuiltInType.Error);
         this.stack.Push(res);
         return res;
       }
@@ -576,7 +481,6 @@ namespace Semantic
     }
     private CodeGeneration.Variable ConvertIntegerArrayToString(CodeGeneration.Variable ia)
     {
-      // this.writer.Write("/*********** Start of converting an Integer array to String **********/\n");
       // var arr : array[3] of integer; array[0] = 1; array[1] = 2; array[2] = 3;
       // "string " + arr = "string [1,2,3]"
 
@@ -666,15 +570,6 @@ namespace Semantic
     }
     public BuiltInType VisitBooleanExpression(BooleanExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public SimpleExpression Left { get; set; }
-      public string RelationalOperator { get; set; }
-      public SimpleExpression Right { get; set; }
-      // Location of RelationalOperator
-      public Location Location { get; set; }
-      public BuiltInType Type { get; set; }
-      */
       e.Left.Visit(this); // Stores on stack
       CodeGeneration.Variable left = this.stack.Pop();
       e.Right.Visit(this);
@@ -722,15 +617,6 @@ namespace Semantic
     }
     public BuiltInType VisitClosedExpression(ClosedExpression e)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public Expression Expression { get; set; }
-      public Location SizeLocation { get; set; }
-      // Location of LeftParenthesis
-      public Location Location { get; set; }
-      public BuiltInType Type { get; set; }
-      */
       if (this.ParameterCheck)
       {
         e.Expression.Visit(this);
@@ -763,22 +649,11 @@ namespace Semantic
     }
     public BuiltInType VisitSimpleExpressionAddition(SimpleExpressionAddition e)
     {
-      /*
-      public string AddingOperator { get; set; }
-      public Term Term { get; set; }
-      public string Style { get; set; }
-      public Location Location { get; set; }
-      */
       e.Term.Visit(this);
       return BuiltInType.Error;
     }
     public BuiltInType VisitTerm(Term t)
     {
-      /*
-      public string Style { get; set; }
-      public Factor Factor { get; set; }
-      public List<TermMultiplicative> Multiplicatives { get; set; }
-      */
       t.Factor.Visit(this);
       return BuiltInType.Error;
     }
@@ -797,7 +672,6 @@ namespace Semantic
         }
         catch (System.Exception)
         {
-          // Error(string message, Location loc, Reader reader)
           throw new Error("Integer is not valid!", l.Location, this.reader);
         }
         return BuiltInType.Error;
@@ -810,13 +684,6 @@ namespace Semantic
     }
     public BuiltInType VisitStringLiteral(StringLiteral l)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public string Value { get; set; }
-      public Location SizeLocation { get; set; }
-      public Location Location { get; set; }
-      */
       // This is a good size for string (checked)
       CodeGeneration.Variable v;
       if (l.Size)
@@ -828,33 +695,18 @@ namespace Semantic
       }
       else
       {
-        // MakeStringVar(string size, string val)
-        // v = InitializeTempVariable(BuiltInType.String, $"{l.Value.Length-1}");
-        // CopyStringVariable(v.Id, l.Value);
         v = InitializeTempVariable(BuiltInType.String); // Without allocatin memory
         this.writer.Write($"{v.Id}=MakeStringVar({l.Value});\n");
       }
       this.stack.Push(v);
       return BuiltInType.Error;
     }
-    /*private CodeGeneration.Variable MakeStringVariable(string value)
-    {
-      CodeGeneration.Variable s = InitializeTempVariable(BuiltInType.String)
-    }*/
     public BuiltInType VisitRealLiteral(RealLiteral l)
     {
       return BuiltInType.Error;
     }
     public BuiltInType VisitNegationFactor(NegationFactor f)
     {
-      /*
-      public string Style { get; set; }
-      public bool Size { get; set; }
-      public Factor Factor { get; set; }
-      public Location SizeLocation { get; set; }
-      // Location of "not"
-      public Location Location { get; set; }
-      */
       // TODO: Handle Size
       f.Factor.Visit(this);
       CodeGeneration.Variable v = this.stack.Pop();
@@ -880,44 +732,23 @@ namespace Semantic
       // TODO: Make GetElementFromStringArray return the char* pointer
       CodeGeneration.Variable s = InitializeTempVariable(BuiltInType.String);
       this.writer.Write($"{s.Id}=GetElementFromStringArray({arr.Id},{i.Id},{arr.Lengths.Id});\n");
-      // this.writer.Write($"GetElementFromStringArray(&{s.Id},{arr.Id},{i.Id},{arr.Lengths.Id});\n");
       return s;
     }
     public BuiltInType VisitVariable(Variable v)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public bool Size { get; set; }
-      // If IntegerExpression is set, means x[IntegerExpression]
-      public Expression IntegerExpression { get; set; }
-      public Location SizeLocation { get; set; }
-      // Location of Name
-      public Location Location { get; set; }
-      public BuiltInType Type { get; set; }
-      */
       if (this.ParameterCheck) throw new Error("Variables are not allowed in function/procedure headers' array expressions!", v.Location, this.reader);
       CodeGeneration.Variable variable;
       if (v.IntegerExpression != null)
       {
-        // Returns a variable with Id of i0[i2] for example.
-        // ArrayElements are handled differently than normal variables.
-        // CodeGeneration.Variable array = this.varHandler.GetVariable(v.Name, CorrespondingArray(v.Type));
         CodeGeneration.Variable array = this.varHandler.GetVariable(v.Name, v.Type);
         v.IntegerExpression.Visit(this); // Stores the value on top of stack
         CodeGeneration.Variable exprVar = this.stack.Pop();
         HandleIndexErrors(array, exprVar);
         this.varHandler.FreeTempVariable(exprVar);
-        // This should be different for left-hand side and right-hand sides
-        // For left hand sides, this is needed
-        // For rhs tho, can assign to temp var and return that
-        // Make undeclared var
         if (v.LHS)
         {
           if (v.Type == BuiltInType.StringArray) variable = new CodeGeneration.Variable($"*({array.Id}+{exprVar.Id})", ElementTypeOfArray(v.Type), array, exprVar.Id, this.block);
           else variable = new CodeGeneration.Variable($"*({array.Id}+{exprVar.Id})", ElementTypeOfArray(v.Type), this.block);
-          //if (v.Type == BuiltInType.StringArray) variable = new CodeGeneration.Variable($"{array.Id}[{exprVar.Id}]", ElementTypeOfArray(v.Type), array, exprVar.Id, this.block);
-          //else variable = new CodeGeneration.Variable($"{array.Id}[{exprVar.Id}]", ElementTypeOfArray(v.Type), this.block);
         }
         else
         {
@@ -929,7 +760,6 @@ namespace Semantic
           else
           {
             CodeGeneration.Variable temp = InitializeTempVariable(ElementTypeOfArray(v.Type));
-            // this.writer.Write($"{temp.Id}={array.Id}[{exprVar.Id}];\n");
             this.writer.Write($"{temp.Id}=*({array.Id}+{exprVar.Id});\n");
             variable = temp;
           }
@@ -958,14 +788,6 @@ namespace Semantic
     }
     public BuiltInType VisitCall(Call c)
     {
-      /*
-      public string Style { get; set; }
-      public string Name { get; set; }
-      public Arguments Arguments { get; set; }
-      public bool Size { get; set; }
-      public Location SizeLocation { get; set; }
-      public Location Location { get; set; }
-      */
       CodeGeneration.Variable v = new CodeGeneration.Variable();
       c.Arguments.Visit(this);
       List<CodeGeneration.Variable> arguments = new List<CodeGeneration.Variable>();
@@ -997,12 +819,10 @@ namespace Semantic
           // And pass them as reference parameters to the function.
           size = InitializeTempVariable(BuiltInType.Integer);
           this.writer.Write($"{size.Id}=0;\n");
-          // v.SetSize(size);
           argumentsAsString += $"{(c.Arguments.Types.Count > 0 ? "," : "")}&{size.Id}";
           if (c.Type == BuiltInType.StringArray)
           {
             lengths = InitializeTempVariable(BuiltInType.IntegerArray, "sizeof(int)");
-            // v.SetLengths(lengths);
             argumentsAsString += $",&{lengths.Id}";
           }
         }
@@ -1014,17 +834,13 @@ namespace Semantic
       }
       this.writer.Write($"{c.Name}({argumentsAsString});\n");
       // TODO: Handle Size
+      if (c.Size) v = CreateSizeVariable(v);
       foreach (CodeGeneration.Variable a in arguments) this.varHandler.FreeTempVariable(a);
       this.stack.Push(v);
       return BuiltInType.Error;
     }
     public List<BuiltInType> VisitArguments(Arguments a)
     {
-      /*
-      public string Style { get; set; }
-      public List<Expression> Expressions { get; set; }
-      */
-      // TODO: Add an Integer List called Refs
       if (a.Expressions.Count == 0) return new List<BuiltInType>();
       // Loop the list in reversed order to store the values to stack in correct order
       for (int i = a.Expressions.Count - 1; i >= 0; i--)
@@ -1040,12 +856,6 @@ namespace Semantic
     }
     public void VisitAssignmentStatement(AssignmentStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Variable Variable { get; set; }
-      public Expression Expression { get; set; }
-      public Location Location { get; set; }
-      */
       s.Expression.Visit(this); // stores the value to top most variable in stack
       s.Variable.Visit(this); //  stores on top of stack
       CodeGeneration.Variable varVar = this.stack.Pop();
@@ -1122,13 +932,6 @@ namespace Semantic
     }
     public void VisitIfStatement(IfStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Expression BooleanExpression { get; set; }
-      public Statement ThenStatement { get; set; }
-      public Statement ElseStatement { get; set; }
-      public Location Location { get; set; }
-      */
       s.BooleanExpression.Visit(this);
       CodeGeneration.Variable b = this.stack.Pop();
       bool elsePresent = s.ElseStatement != null;
@@ -1153,12 +956,6 @@ namespace Semantic
     }
     public void VisitReadStatement(ReadStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public List<Variable> Variables { get; set; }
-      public Location Location { get; set; }
-      */
-      // this.writer.Write("fflush(stdout);\n");
       List<CodeGeneration.Variable> scanned = new List<CodeGeneration.Variable>();
       foreach (Variable v in s.Variables)
       {
@@ -1173,11 +970,6 @@ namespace Semantic
     }
     public void VisitReturnStatement(ReturnStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Expression Expression { get; set; }
-      public Location Location { get; set; }
-      */
       string retVal = "0"; // In case of Void returns 0
       if (s.Expression != null)
       {
@@ -1211,11 +1003,6 @@ namespace Semantic
     }
     public void VisitWriteStatement(WriteStatement s)
     {
-      /*
-      public string Style { get; set; }
-      public Arguments Arguments { get; set; }
-      public Location Location { get; set; }
-      */
       List<CodeGeneration.Variable> printedVars = new List<CodeGeneration.Variable>();
       if (s.Arguments != null)
       {
@@ -1264,8 +1051,6 @@ namespace Semantic
     }
     private void ReallocMemory(string target, string value)
     {
-      // s1=realloc(s1, sizeof(s2)); // sizeof(string) returns also the null char
-      // while strlen(string) would need the + 1 for the null char
       this.writer.Write($"{target}=realloc({target},{value});\n");
     }
     private void MallocMemory(string target, string value)

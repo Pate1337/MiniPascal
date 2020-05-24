@@ -613,7 +613,7 @@ namespace miniPascal
         case ("string"): return BuiltInType.String;
         case ("integer"): return BuiltInType.Integer;
         case ("boolean"): return BuiltInType.Boolean;
-        case ("Real"): return BuiltInType.Real;
+        case ("real"): return BuiltInType.Real;
         default: return BuiltInType.Error;
       }
     }

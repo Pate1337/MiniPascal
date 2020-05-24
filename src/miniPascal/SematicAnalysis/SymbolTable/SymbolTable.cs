@@ -26,14 +26,6 @@ namespace Semantic
       foreach (KeyValuePair<string, SymbolTableEntry> pair in this.Table)
       {
         Console.WriteLine(pair.Value);
-        /*Console.Write($"<{pair.Key}, ({pair.Value.Identifier}, {pair.Value.Type}, {pair.Value.Reference}");
-        if (pair.Value.Parameters != null)
-        {
-          Console.Write(", [ ");
-          foreach (string p in pair.Value.Parameters) Console.Write($"{p},");
-          Console.Write(" ]");
-        }
-        Console.Write(")>\n");*/
       }
     }
   }

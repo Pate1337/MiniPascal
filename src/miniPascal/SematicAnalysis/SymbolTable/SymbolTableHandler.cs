@@ -96,31 +96,6 @@ namespace Semantic
         else if (IsProgramName(e)) new Error($"Can not assign a value to variable {id}, because it is the program's name.", loc, this.reader).Print(this.io);
       }
       else new Error($"Can not assign a value to variable {id}, because it has not been declared.", loc, this.reader).Print(this.io);
-
-      /*if (e.Type == BuiltInType.Error)
-      {
-        new Error($"Can not assign a value to variable {id}, because it has not been declared.", loc, this.reader).Print(this.io);
-        return false;
-      }
-      if (IsParameter(e))
-      {
-        if (!IsReferenceParameter(e))
-        {
-          new Error($"Can not assign a value to variable {id}, because it is a parameter.", loc, this.reader).Print(this.io);
-          return false;
-        }
-      }
-      else if (IsProcedureOrFunction(e))
-      {
-        new Error($"Can not assign a value to variable {id}, because it is a procedure or a function.", loc, this.reader).Print(this.io);
-        return false;
-      }
-      else if (IsProgramName(e))
-      {
-        new Error($"Can not assign a value to variable {id}, because it is the program's name.", loc, this.reader).Print(this.io);
-        return false;
-      }
-      return true;*/
     }
     private bool IsReferenceParameter(SymbolTableEntry e)
     {

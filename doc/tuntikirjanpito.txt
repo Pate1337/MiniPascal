@@ -33,4 +33,6 @@ lopuksi suorittaa käännetyn koodin.
 14.05.2020 | 6h | Kokonaisluku taulukko saadaan muutetuksi string-tyyppiseksi esitykseksi.
 16.05.2020 | 8h | String-taulukot toteutettu.
 17.05.2020 | 8h | Koodin refaktorintia, kun selvisi, että funktioiden käyttö C-koodissa sallittua.
-BUGIT:
+18.-24.05.2020 | 48 h | Toteutettu taulukot valmiiksi, kaikki dynaamisia. Funtiot ja proceduurit.
+
+Yhteensä 170 h.

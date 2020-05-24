@@ -35,12 +35,7 @@ namespace CodeGeneration
       this.fc.WriteFunctions(this.writer);
       this.visitor.VisitProceduresAndFunctions(this.ast);
       this.writer.WriteLine("int main() {");
-      // this.writer.WriteLine("setvbuf(stdout, 0, _IONBF, 0);");
       this.visitor.VisitProgram(this.ast);
-      /*this.writer.WriteLine("goto END;");
-      this.writer.WriteLine("ERROR:;");
-      this.writer.WriteLine("printf(\"Error occurred! Stopped execution.\\n\");");
-      this.writer.WriteLine("END:;");*/
       this.writer.WriteLine("return 0;");
       this.writer.WriteLine("}");
       this.writer.Close();

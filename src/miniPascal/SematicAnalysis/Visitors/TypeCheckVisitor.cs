@@ -474,6 +474,7 @@ namespace Semantic
             this.fg.CopyIntegerPointer = true;
           }
           else if (s.Variable.Type == BuiltInType.IntegerArray && exprType == BuiltInType.IntegerArray) this.fg.CopyIntegerPointer = true;
+          else if (s.Variable.Type == BuiltInType.String && exprType == BuiltInType.String) this.fg.CopyCharPointer = true;
           string id = s.Variable.Name;
           if (varType != exprType) new Error($"Can not assign {exprType} into a {varType} variable {id}.", s.Location, this.reader).Print(this.io);
           else this.Table.Assign(id, s.Location); // Does the checks for illegal assignments

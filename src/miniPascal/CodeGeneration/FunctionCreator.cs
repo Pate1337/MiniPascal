@@ -88,22 +88,6 @@ namespace CodeGeneration
       writer.WriteLine("}");
       this.IndexInBounds = true;
     }
-    /*private void WriteSizeOfStringArrayInBytesFunction(FileHandler.FileWriter writer)
-    {
-      writer.WriteLine("int SizeOfStringArrayInBytes(int s,int* a){");
-      writer.WriteLine("int c = 0;");
-      writer.WriteLine("int r = 0;");
-      writer.WriteLine("START:;");
-      writer.WriteLine("if(c==s) goto CONT;");
-      writer.WriteLine("r=r+a[c];");
-      writer.WriteLine("c=c+1;");
-      writer.WriteLine("goto START;");
-      writer.WriteLine("CONT:;");
-      writer.WriteLine("return r;");
-      writer.WriteLine("}");
-    }*/
-
-    // Replace SizeOfStringArrayInBytes with this
     private void WriteSizeOfStringArrayInBytesFunction(FileHandler.FileWriter writer)
     {
       // First offset is always 0.
@@ -117,44 +101,12 @@ namespace CodeGeneration
       writer.WriteLine("}");
       this.SizeOfStringArrayInBytes = true;
     }
-    /*private void WriteAssignStringToStringArrayFunction(FileHandler.FileWriter writer)
-    {
-      writer.WriteLine("void AssignStringToStringArray(char** a,int i,char* str,int s,int* l){");
-      writer.WriteLine("int o=SizeOfStringArrayInBytes(s,l);");
-      writer.WriteLine("int* ol=malloc(sizeof(int)*s);");
-      writer.WriteLine("memcpy(ol,l,sizeof(int)*s);");
-      writer.WriteLine("int t=(int)(strlen(str)+1);");
-      writer.WriteLine("l[i]=t;");
-      writer.WriteLine("t=t-ol[i];");
-      writer.WriteLine("t=o+t;");
-      writer.WriteLine("char* n=malloc(t);");
-      writer.WriteLine("int c=0;");
-      writer.WriteLine("int of=0;");
-      writer.WriteLine("o=0;");
-      writer.WriteLine("START:;");
-      writer.WriteLine("if(c==s) goto END;");
-      writer.WriteLine("char* sc=malloc(l[c]);");
-      writer.WriteLine("memcpy(sc,*a+of,ol[c]);");
-      writer.WriteLine("if(c!=i) goto CONT;");
-      writer.WriteLine("memcpy(sc,str,l[c]);");
-      writer.WriteLine("CONT:;");
-      writer.WriteLine("memcpy(n+o,sc,l[c]);");
-      writer.WriteLine("c=c+1;");
-      writer.WriteLine("o=o+l[c-1];");
-      writer.WriteLine("of=of+ol[c-1];");
-      writer.WriteLine("goto START;");
-      writer.WriteLine("END:;");
-      writer.WriteLine("*a=realloc(*a,t);");
-      writer.WriteLine("memcpy(*a,n,t);");
-      writer.WriteLine("}");
-    }*/
     private void WriteAssignStringToStringArrayFunction(FileHandler.FileWriter writer)
     {
       if (!this.SizeOfStringArrayInBytes) WriteSizeOfStringArrayInBytesFunction(writer);
       writer.WriteLine("void AssignStringToStringArray(char** a,int i,char* str,int s,int* o){");
       writer.WriteLine("int l=SizeOfStringArrayInBytes(s,*a,o);");
       writer.WriteLine("int b=o[i];");
-      // writer.WriteLine("int d=l-o[i];");
       writer.WriteLine("int d=1;");
       writer.WriteLine("int e=0;");
       writer.WriteLine("if(i==s-1) goto SKIP;");
@@ -184,30 +136,6 @@ namespace CodeGeneration
       writer.WriteLine("}");
       this.AssignStringToStringArray = true;
     }
-    /*private void WriteGetElementFromStringArrayFunction(FileHandler.FileWriter writer)
-    {
-      writer.WriteLine("char* GetElementFromStringArray(char* a,int i,int* l){");
-
-      // writer.WriteLine("char* s=malloc(l[i]);");
-
-      writer.WriteLine("int o=0;");
-      writer.WriteLine("if(i==0) goto SKIP;");
-      writer.WriteLine("int c=0;");
-      writer.WriteLine("START:;");
-      writer.WriteLine("if(c==i) goto SKIP;");
-      writer.WriteLine("o=o+l[c];");
-      writer.WriteLine("c=c+1;");
-      writer.WriteLine("goto START;");
-      writer.WriteLine("SKIP:;");
-
-      // The new line
-      writer.WriteLine("char* s=a+o;");
-
-      // writer.WriteLine("memcpy(s,a+o,l[i]);");
-
-      writer.WriteLine("return s;");
-      writer.WriteLine("}");
-    }*/
     private void WriteGetElementFromStringArrayFunction(FileHandler.FileWriter writer)
     {
       // TODO: Don't even make a function of this
@@ -216,19 +144,6 @@ namespace CodeGeneration
       writer.WriteLine("}");
       this.GetElementFromStringArray = true;
     }
-    /*private void WriteStringArrayInitializationFunction(FileHandler.FileWriter writer)
-    {
-      writer.WriteLine("void InitializeStringArray(char* a,int s,int* l){");
-      writer.WriteLine("int i=0;");
-      writer.WriteLine("START:;");
-      writer.WriteLine("if(i==s) goto SKIP;");
-      writer.WriteLine("a[i]='\0';");
-      writer.WriteLine("l[i]=1;");
-      writer.WriteLine("i=i+1;");
-      writer.WriteLine("goto START;");
-      writer.WriteLine("SKIP:;");
-      writer.WriteLine("}");
-    }*/
     private void WriteStringArrayInitializationFunction(FileHandler.FileWriter writer)
     {
       // o must be alloc'd with malloc(sizeof(int)) if size == 0 
@@ -251,8 +166,6 @@ namespace CodeGeneration
       writer.WriteLine("free(*dest);");
       writer.WriteLine("*dest=malloc(sizeof(int)*s);");
       writer.WriteLine("memcpy(*dest,src,sizeof(int)*s);");
-      // writer.WriteLine("*dest=realloc(*dest,sizeof(int)*s);");
-      // writer.WriteLine("memcpy(*dest,src,sizeof(int)*s);");
       writer.WriteLine("}");
       this.CopyIntegerPointer = true;
     }
@@ -262,8 +175,6 @@ namespace CodeGeneration
       writer.WriteLine("free(*dest);");
       writer.WriteLine("*dest=malloc(sizeof(char)*s);");
       writer.WriteLine("memcpy(*dest,src,sizeof(char)*s);");
-      // writer.WriteLine("*dest=realloc(*dest,s);");
-      // writer.WriteLine("memcpy(*dest,src,s);");
       writer.WriteLine("}");
       this.CopyCharPointer = true;
     }
@@ -294,13 +205,6 @@ namespace CodeGeneration
       writer.WriteLine("}");
       this.IntegerToStringWithSizeCalc = true;
     }
-    /*private void WriteIntegerToStringFunction(FileHandler.FileWriter writer)
-    {
-      writer.WriteLine("void IntegerToString(int i,int size,char** s){");
-      writer.WriteLine("*s=realloc(*s,size+1);");
-      writer.WriteLine("sprintf(*s,\"%d\",i);");
-      writer.WriteLine("}");
-    }*/
     private void WriteIntegerArrayToStringFunction(FileHandler.FileWriter writer)
     {
       if (!this.IntegerSizeAsString) WriteIntegerSizeAsStringFunction(writer);
@@ -396,16 +300,6 @@ namespace CodeGeneration
     }
     private void WriteConcatStringArraysFunction(FileHandler.FileWriter writer)
     {
-      /*
-      char* ConcatStringArrays(char* a1,char* a2,int s1,int s2,int* l1,int* l2){
-        int tl1=SizeOfStringArrayInBytes(s1,a1,l1);
-        int tl2=SizeOfStringArrayInBytes(s2,a2,l2);
-        char* n=malloc(tl1+tl2);
-        memcpy(n,a1,tl1);
-        memcpy(n+tl1,a2,tl2);
-        return n;
-      }
-      */
       if (!this.SizeOfStringArrayInBytes) WriteSizeOfStringArrayInBytesFunction(writer);
       writer.WriteLine("char* ConcatStringArrays(char* a1,char* a2,int s1,int s2,int* l1,int* l2){");
       writer.WriteLine("int tl1=SizeOfStringArrayInBytes(s1,a1,l1);");
