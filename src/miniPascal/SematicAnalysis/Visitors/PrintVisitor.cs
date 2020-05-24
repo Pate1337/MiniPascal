@@ -51,6 +51,7 @@ namespace Semantic
       this.depth--;
       this.io.Write(")\n");
     }
+    public void VisitProceduresAndFunctions(ProgramNode p){}
     public void VisitProcedure(Procedure p)
     {
       EnterNode(p);

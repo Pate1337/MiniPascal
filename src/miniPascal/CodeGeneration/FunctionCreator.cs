@@ -19,6 +19,7 @@ namespace CodeGeneration
     public bool ConcatStringArrays { get; set; }
     public bool StringArrayToString { get; set; }
     public bool CountNewOffsets { get; set; }
+    public bool CompareStrings { get; set; }
 
     public FunctionCreator()
     {
@@ -39,6 +40,7 @@ namespace CodeGeneration
       this.ConcatStringArrays = false;
       this.StringArrayToString = false;
       this.CountNewOffsets = false;
+      this.CompareStrings = false;
     }
 
     public void WriteFunctions(FileHandler.FileWriter writer)
@@ -60,6 +62,7 @@ namespace CodeGeneration
       if (this.ConcatStringArrays) WriteConcatStringArraysFunction(writer);
       if (this.StringArrayToString) WriteStringArrayToStringFunction(writer);
       if (this.CountNewOffsets) WriteCountNewOffsetsFunction(writer);
+      if (this.CompareStrings) WriteCompareStringsFunction(writer);
     }
     private void WriteNegativeIndexFunction(FileHandler.FileWriter writer)
     {
@@ -151,7 +154,8 @@ namespace CodeGeneration
       writer.WriteLine("void AssignStringToStringArray(char** a,int i,char* str,int s,int* o){");
       writer.WriteLine("int l=SizeOfStringArrayInBytes(s,*a,o);");
       writer.WriteLine("int b=o[i];");
-      writer.WriteLine("int d=l-o[i];");
+      // writer.WriteLine("int d=l-o[i];");
+      writer.WriteLine("int d=1;");
       writer.WriteLine("int e=0;");
       writer.WriteLine("if(i==s-1) goto SKIP;");
       writer.WriteLine("d=l-o[i+1]+1;");
@@ -168,6 +172,7 @@ namespace CodeGeneration
       writer.WriteLine("memcpy(*a,s1,b);");
       writer.WriteLine("memcpy(*a+b,str,f);");
       writer.WriteLine("memcpy(*a+b+f,s2,d);");
+      writer.WriteLine("*(*a+b+f+d-1)='\\0';");
       writer.WriteLine("b=i+1;");
       writer.WriteLine("d=e-l;");
       writer.WriteLine("START:;");
@@ -447,44 +452,22 @@ namespace CodeGeneration
       writer.WriteLine("return s;");
       writer.WriteLine("}");
       this.StringArrayToString = true;
-      /*
-      char* StringArrayToString(char* a, int size,int* l){
-//char* StringArrayToString(){
-  if (size==0) goto EMPTY;
-  int t=SizeOfStringArrayInBytes(size,a,l)+2*size+2;
-  char* s=malloc(t);
-  strcpy(s,"[");
+    }
+    private void WriteCompareStringsFunction(FileHandler.FileWriter writer)
+    {
+      writer.WriteLine("int CompareStrings(char* s1,char* s2){");
+      writer.WriteLine("int l=(int)(strlen(s1));");
+      writer.WriteLine("if(l!=(int)(strlen(s2))) return 0;");
+      writer.WriteLine("int c=0;");
+      writer.WriteLine("LOOP:;");
+      writer.WriteLine("if(c==l) return 1;"); // Made it to end
 
-  t=0;
-  int o=1;
-  LOOP:;
+      writer.WriteLine("if(s1[c]!=s2[c]) return 0;");
+      writer.WriteLine("c=c+1;");
+      writer.WriteLine("goto LOOP;");
 
-  char* p=GetElementFromStringArray(a,t,l);
-  int length=(int)(strlen(p));
-  strcpy(s+o,"\"");
-  o=o+1;
-  memcpy(s+o,p,length);
-  o=o+length;
-  strcpy(s+o,"\"");
-  o=o+1;
-  if(t==size-1) goto END;
-  strcpy(s+o,",");
-  o=o+1;
-  t=t+1;
-  goto LOOP;
-  END:;
-  strcpy(s+o,"]");
-  goto FINISH;
-
-  // Surrounders are same as in IntegerArrayToString
-  EMPTY:;
-  s=malloc(3);
-  strcpy(s,"[]");
-  FINISH:;
-  printf("%s\n", s);
-  return s;
-}
-      */
+      writer.WriteLine("}");
+      this.CompareStrings = true;
     }
   }
 }

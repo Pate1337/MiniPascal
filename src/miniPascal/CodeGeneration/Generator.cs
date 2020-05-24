@@ -33,7 +33,9 @@ namespace CodeGeneration
       this.writer.WriteLine("#include <string.h>");
       this.writer.WriteLine("#include <math.h>");
       this.fc.WriteFunctions(this.writer);
+      this.visitor.VisitProceduresAndFunctions(this.ast);
       this.writer.WriteLine("int main() {");
+      // this.writer.WriteLine("setvbuf(stdout, 0, _IONBF, 0);");
       this.visitor.VisitProgram(this.ast);
       /*this.writer.WriteLine("goto END;");
       this.writer.WriteLine("ERROR:;");
@@ -70,16 +72,16 @@ namespace CodeGeneration
     }
     public void RunExecutable()
     {
-      if (!Utils.File.Exists(this.NameOfExe)) throw new Errors.Error($"Could not execute file {this.NameOfExe} because it does not exist!");
+      if (!Utils.File.Exists(this.PathOfExe)) throw new Errors.Error($"Could not execute file {this.PathOfExe} because it does not exist!");
       System.Diagnostics.Process pProcess = new System.Diagnostics.Process();
-      pProcess.StartInfo.FileName = this.NameOfExe;
-      pProcess.StartInfo.UseShellExecute = false;
-      pProcess.StartInfo.RedirectStandardOutput = true;
+      pProcess.StartInfo.FileName = this.PathOfExe;
+      // pProcess.StartInfo.UseShellExecute = false;
+      // pProcess.StartInfo.RedirectStandardOutput = true;
       pProcess.Start();
 
-      string output = pProcess.StandardOutput.ReadToEnd();
+      // string output = pProcess.StandardOutput.ReadToEnd();
 
-      System.Console.Write(output);
+      // System.Console.Write(output);
 
       while (!pProcess.WaitForExit(1000));
       HandleErrors(pProcess, "e", null);
@@ -103,6 +105,8 @@ namespace CodeGeneration
           throw new Errors.CompileError(t, $"Negative indexes are not allowed!{gccErrors}");
         case (int)ErrorCode.OutOfBoundsIndex:
           throw new Errors.CompileError(t, $"Index was out of bounds!{gccErrors}");
+        /*case (int)ErrorCode.InvalidBoolean:
+          throw new Errors.CompileError(t, $"Boolean type was assigned an invalid integer value! Only 0 and 1 are allowed.{gccErrors}");*/
         case 100: throw new Errors.CompileError(t, "Could not get the exitCode of process...");
         default:
           throw new Errors.CompileError(t, $"The process that executes {(t == "e" ? this.NameOfExe : "The .c file")} returned error code {code}!{gccErrors}");

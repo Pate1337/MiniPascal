@@ -1,5 +1,32 @@
 pROGRAM TESTprogram;
 
+procedure p(var a : array[] of string);
+begin
+writeln("size of array: ", a.size);
+if (a.size = 3) then return;
+a[0] := "TERSE";
+end;
+procedure p2(var a : array[] of string);
+begin
+a[1] := "TERSE";
+end;
+
+function createIntegerArray() : array[2] of integer;
+begin
+var a : array[2] of integer;
+a[0] := 1;
+a[1] := 2;
+return a;
+end;
+
+function createStringArray() : array[2] of string;
+begin
+var a : array[2] of string;
+a[0] := "eka";
+a[1] := "toka";
+return a;
+end;
+
 {*
 procedure p(var p1:array["string"] of string,p2:string);
 begin
@@ -70,7 +97,38 @@ end;
 *}
 
 begin 
+var arr : array[2] of integer;
+arr := createIntegerArray();
+writeln(arr);
+var strarr : array[3] of string;
+strarr := createStringArray();
+writeln(strarr);
 var a : array[3] of string;
+a[0] := "init1";
+a[1] := "init2";
+a[2] := "init3";
+writeln("a before call: ", a);
+p(a);
+writeln("a after call: ", a);
+p2(a);
+writeln("a after p2 call: ", a);
+
+{*var b : boolean;
+b := "moro" = "moro";
+if (not b) then
+begin
+var a : integer;
+a := 1;
+writeln("Inside if: ", a);
+end
+else writeln("b on false");
+var a : integer;
+a := 4;
+writeln("a outside the block: " + a);
+writeln(b);
+writeln(not (not 1=1));*}
+
+{*var a : array[3] of string;
 var b : array[2] of string;
 a[0] := "eka_a";
 a[1] := "toka_a";
@@ -88,7 +146,7 @@ writeln("Entä tää " + c);
 c[2] := "UUs arvo c[2]";
 writeln(c.size);
 writeln(c[0].size);
-writeln("ok".size);
+writeln("ok".size);*}
 
 {*var a : array[4] of integer;
 a[0] := 1;

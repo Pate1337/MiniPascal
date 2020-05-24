@@ -34,6 +34,7 @@ namespace Semantic
       p.Block.Visit(this);
       foreach (Warning w in this.warnings) w.Print(this.io);
     }
+    public void VisitProceduresAndFunctions(ProgramNode p){}
     public void VisitBlock(Block b, bool needsToReturnValue)
     {
       bool returnsBeforeEnd = false;
@@ -198,8 +199,41 @@ namespace Semantic
       if (leftType == BuiltInType.Error || rightType == BuiltInType.Error) return BuiltInType.Error;
       if (leftType != rightType)
       {
+        if (e.RelationalOperator == "=" || e.RelationalOperator == "<>")
+        {
+          if (
+            (leftType == BuiltInType.Integer && rightType == BuiltInType.Boolean) ||
+            (leftType == BuiltInType.Boolean && rightType == BuiltInType.Integer)
+            ) return BuiltInType.Boolean;
+        }
         new OperationError(e.RelationalOperator, leftType, rightType, e.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
+      }
+      else if (leftType == BuiltInType.String)
+      {
+        if (e.RelationalOperator == "=" || e.RelationalOperator == "<>") this.fg.CompareStrings = true;
+        else
+        {
+          new OperationError(e.RelationalOperator, leftType, rightType, e.Location, this.reader).Print(this.io);
+          return BuiltInType.Error;
+        }
+      }
+      else if (IsArray(leftType))
+      {
+        if (e.RelationalOperator == "=" || e.RelationalOperator == "<>")
+        {
+          switch (leftType)
+          {
+            case BuiltInType.IntegerArray: break; // this.fg.CompareIntegerArrays = true;
+            case BuiltInType.StringArray: break;
+            default: break;
+          }
+        }
+        else
+        {
+          new OperationError(e.RelationalOperator, leftType, rightType, e.Location, this.reader).Print(this.io);
+          return BuiltInType.Error;
+        }
       }
       // <relational operator> ::= "=" | "<>" | "<" | "<=" | ">=" | ">"
       return BuiltInType.Boolean;
@@ -274,7 +308,7 @@ namespace Semantic
     {
       BuiltInType factorType = f.Factor.Visit(this);
       if (factorType == BuiltInType.Error) return BuiltInType.Error;
-      if (factorType != BuiltInType.Boolean)
+      if (factorType != BuiltInType.Boolean && factorType != BuiltInType.Integer)
       {
         new Error($"Can not get negation of {factorType}", f.Factor.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
@@ -371,6 +405,7 @@ namespace Semantic
         }
         index++;
       }
+      c.Arguments.Refs = refParameters;
       string requiredTypesAsString = Utils.StringHandler.BuiltInTypeListToString(requiredTypes);
       string argumentTypesAsString = Utils.StringHandler.BuiltInTypeListToString(argumentTypes);
       if (argumentTypes.Count != requiredTypes.Count)
@@ -383,7 +418,7 @@ namespace Semantic
       foreach (int indx in refParameters)
       {
         if (!ExpressionCanBeUsedAsReferenceParameter(c.Arguments.Expressions[indx])) new Error($"Reference parameters need to be passed as variables.", c.Location, this.reader).Print(this.io);
-        return BuiltInType.Error;
+        // return BuiltInType.Error;
       }
 
       // Check that the argumentTypes match the SymbolTableEntry's parameter types
@@ -403,6 +438,7 @@ namespace Semantic
         new Error($"{(e.Type == BuiltInType.Void ? "Procedure" : "Function")} {c.Name} expects {requiredTypes.Count} argument(s){(requiredTypes.Count > 0 ? " of type " + requiredTypesAsString : "")}. Instead got {argumentTypes.Count} argument(s){(argumentTypes.Count > 0 ? " of type " + argumentTypesAsString : "")}", c.Location, this.reader).Print(this.io);
         return BuiltInType.Error;
       }
+      c.Type = e.Type;
       return e.Type; // Void if Procedure call
     }
     public List<BuiltInType> VisitArguments(Arguments a)
@@ -467,6 +503,7 @@ namespace Semantic
     {
       foreach (Variable v in s.Variables)
       {
+        v.LHS = true;
         BuiltInType varType = v.Visit(this);
         if (IsArray(varType) || varType == BuiltInType.Boolean) new Error($"Can not read into variable \"{v.Name}\" of type {varType}. Can only read to variables of type Integer, String or Real.", v.Location, this.reader).Print(this.io);
         else if (varType != BuiltInType.Error) this.Table.Assign(v.Name, v.Location); // Reports illegal assignments
@@ -582,7 +619,7 @@ namespace Semantic
           }
           return t;
         case "or":
-          if (t != BuiltInType.Boolean)
+          if (t != BuiltInType.Boolean && t != BuiltInType.Integer)
           {
             new Error($"Can not use keyword \"or\" with {t}", l, this.reader).Print(this.io);
             return BuiltInType.Error;
@@ -699,7 +736,7 @@ namespace Semantic
       if (t1 == BuiltInType.String || t2 == BuiltInType.String)
       {
         this.fg.ConcatStrings = true;
-        if (t1 == BuiltInType.Integer || t2 == BuiltInType.Integer) this.fg.IntegerToStringWithSizeCalc = true;
+        if (t1 == BuiltInType.Integer || t2 == BuiltInType.Integer || t1 == BuiltInType.Boolean || t2 == BuiltInType.Boolean) this.fg.IntegerToStringWithSizeCalc = true;
         else if (t1 == BuiltInType.IntegerArray || t2 == BuiltInType.IntegerArray) this.fg.IntegerArrayToString = true;
         return BuiltInType.String; // Turns Type to String
       }
@@ -715,7 +752,11 @@ namespace Semantic
     }
     private BuiltInType HandleDifferentTypeOrOperation(BuiltInType t1, BuiltInType t2, Location l)
     {
-      // Only allow for 2 Booleans
+      // Allows (1=1) or 1
+      if (
+        (t1 == BuiltInType.Boolean && t2 == BuiltInType.Integer) ||
+        (t1 == BuiltInType.Integer && t2 == BuiltInType.Boolean)
+        ) return BuiltInType.Boolean;
       // if (t1 == BuiltInType.Boolean) return t2; // true or "ok" -> String
       new OperationError("or", t1, t2, l, this.reader).Print(this.io);
       return BuiltInType.Error;

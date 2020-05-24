@@ -10,6 +10,7 @@ namespace Nodes
     public bool Size { get; set; }
     public Location SizeLocation { get; set; }
     public Location Location { get; set; }
+    public BuiltInType Type { get; set; }
     public Call()
     {
       this.Size = false;
@@ -17,6 +18,7 @@ namespace Nodes
       // this.Arguments = null;
       this.Arguments = new Arguments();
       this.SizeLocation = null;
+      this.Type = BuiltInType.Error;
     }
     void Statement.Visit(Visitor v)
     {

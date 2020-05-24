@@ -8,6 +8,7 @@ namespace Semantic
     void VisitProgram(ProgramNode p);
     void VisitProcedure(Procedure p);
     void VisitFunction(Function f);
+    void VisitProceduresAndFunctions(ProgramNode p);
     SymbolTableEntry VisitReferenceParameter(ReferenceParameter rp);
     SymbolTableEntry VisitValueParameter(ValueParameter vp);
     BuiltInType VisitArrayType(ArrayType t);

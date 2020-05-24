@@ -13,6 +13,7 @@ namespace CodeGeneration
     public Variable Lengths { get; set; } // For StringArrays. TODO: Change to Offsets
     public Variable ElementOf { get; set; } // An array variable
     public string Index { get; set; }
+    public int Block { get; set; }
 
     /*
     * Creates an empty variable
@@ -25,12 +26,13 @@ namespace CodeGeneration
       this.IsArrayElement = false;
       this.IsArraySize = false;
       this.Index = null;
+      this.Block = 0;
     }
 
     /*
     * Creates an ArrayElement variable
     */
-    public Variable(string id, Semantic.BuiltInType type, Variable arr, string index)
+    public Variable(string id, Semantic.BuiltInType type, Variable arr, string index, int block)
     {
       this.Id = id;
       this.OriginalId = null;
@@ -41,12 +43,13 @@ namespace CodeGeneration
       this.Index = index;
       this.Size = new Variable();
       this.Lengths = new Variable();
+      this.Block = block;
     }
 
     /*
     * Also creates an ArrayElement variable
     */
-    public Variable(string id, Semantic.BuiltInType type)
+    public Variable(string id, Semantic.BuiltInType type, int block)
     {
       this.Id = id;
       this.OriginalId = null;
@@ -57,12 +60,13 @@ namespace CodeGeneration
       this.Size = new Variable();
       this.Lengths = new Variable();
       this.ElementOf = new Variable();
+      this.Block = block;
     }
 
     /*
     * Creates a variable that has been declared in MiniPascal.
     */
-    public Variable(string id, string originalId, Semantic.BuiltInType type)
+    public Variable(string id, string originalId, Semantic.BuiltInType type, int block)
     {
       this.Id = id;
       this.OriginalId = originalId;
@@ -73,6 +77,7 @@ namespace CodeGeneration
       this.Size = new Variable();
       this.Lengths = new Variable();
       this.ElementOf = new Variable();
+      this.Block = block;
     }
     public void SetSize(Variable v)
     {
